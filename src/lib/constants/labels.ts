@@ -1,0 +1,70 @@
+import type { HabitFrequency, LifeAreaCode, Priority, ProjectStatus, TaskStatus } from "@/types/database";
+
+export const TASK_STATUS_LABELS: Record<TaskStatus, string> = {
+  pending: "Pendiente",
+  in_progress: "En curso",
+  completed: "Completada",
+  cancelled: "Cancelada",
+};
+
+export const PROJECT_STATUS_LABELS: Record<ProjectStatus, string> = {
+  active: "Activo",
+  on_hold: "En pausa",
+  completed: "Completado",
+};
+
+export const PRIORITY_LABELS: Record<Priority, string> = {
+  low: "Baja",
+  medium: "Media",
+  high: "Alta",
+  urgent: "Urgente",
+};
+
+export const HABIT_FREQUENCY_LABELS: Record<HabitFrequency, string> = {
+  daily: "Todos los días",
+  days_of_week: "Días específicos",
+  times_per_week: "Veces por semana",
+};
+
+/** Índice = día ISO (1 = lunes). */
+export const WEEKDAY_LABELS: Record<number, { short: string; long: string }> = {
+  1: { short: "L", long: "Lunes" },
+  2: { short: "M", long: "Martes" },
+  3: { short: "X", long: "Miércoles" },
+  4: { short: "J", long: "Jueves" },
+  5: { short: "V", long: "Viernes" },
+  6: { short: "S", long: "Sábado" },
+  7: { short: "D", long: "Domingo" },
+};
+
+/** Escala de calidad percibida del sueño (D-25). */
+export const SLEEP_QUALITY_LABELS: Record<number, string> = {
+  1: "Muy mala",
+  2: "Mala",
+  3: "Regular",
+  4: "Buena",
+  5: "Excelente",
+};
+
+/** Orden de ordenación de prioridades (mayor primero). */
+export const PRIORITY_RANK: Record<Priority, number> = { urgent: 4, high: 3, medium: 2, low: 1 };
+
+export type ModuleDefinition = {
+  /** HABITS es un módulo transversal: no es una de las seis dimensiones (DEC-002). */
+  code: LifeAreaCode | "DASHBOARD" | "HABITS";
+  href: string;
+  label: string;
+  available: boolean;
+};
+
+/** Navegación principal. `available` indica si el módulo ya está construido (Sprint 1: solo WORK). */
+export const MODULES: ModuleDefinition[] = [
+  { code: "DASHBOARD", href: "/dashboard", label: "Dashboard", available: true },
+  { code: "WORK", href: "/work", label: "Trabajo", available: true },
+  { code: "HABITS", href: "/habits", label: "Hábitos", available: true },
+  { code: "FITNESS", href: "/fitness", label: "Entrenamiento", available: false },
+  { code: "NUTRITION", href: "/nutrition", label: "Alimentación", available: false },
+  { code: "SLEEP", href: "/sleep", label: "Sueño", available: true },
+  { code: "FINANCE", href: "/finance", label: "Finanzas", available: false },
+  { code: "PERSONAL", href: "/personal", label: "Vida personal", available: false },
+];

@@ -1,0 +1,275 @@
+import Link from "next/link";
+import { AlertTriangle, CalendarClock, CheckCircle2, Flame, FolderKanban, ListTodo, Moon } from "lucide-react";
+import { getHabitViews } from "@/features/habits/queries";
+import { listSleepRecords } from "@/features/sleep/queries";
+import { formatDuration, summarizeSleep } from "@/lib/sleep/stats";
+import { getWorkspaceContext } from "@/lib/auth/session";
+import { MODULES, PRIORITY_LABELS } from "@/lib/constants/labels";
+import { addDays, formatDate, startOfDayInstant, todayIn } from "@/lib/utils/date";
+import { countCompletedSince, listOpenTasks } from "@/features/tasks/queries";
+import { listProjects } from "@/features/projects/queries";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { EmptyState } from "@/components/shared/empty-state";
+import { MODULE_ICONS } from "@/components/layout/nav-icons";
+import { StatCard } from "./stat-card";
+
+const UPCOMING_LIMIT = 6;
+const PROJECTS_LIMIT = 5;
+
+/** Todo lo que se muestra sale de la base de datos del usuario; no hay cifras simuladas (D-14). */
+export async function DashboardContent() {
+  const ctx = await getWorkspaceContext();
+  const today = todayIn(ctx.profile.timezone);
+  // "Completadas recientes": desde el inicio del día de hace 6 días en la zona del usuario (7 días con hoy).
+  const since = startOfDayInstant(addDays(today, -6), ctx.profile.timezone);
+
+  const [openTasks, projects, completedWeek, habitViews, sleepWeek] = await Promise.all([
+    listOpenTasks(ctx.workspace.id),
+    listProjects(ctx.workspace.id),
+    countCompletedSince(ctx.workspace.id, since.toISOString()),
+    getHabitViews(ctx.workspace.id, today),
+    listSleepRecords(ctx.workspace.id, { sinceDate: addDays(today, -6) }),
+  ]);
+
+  const goalMinutes = Math.round(ctx.profile.sleep_goal_hours * 60);
+  const sleep = summarizeSleep(sleepWeek, goalMinutes);
+
+  const habitsDue = habitViews.filter((v) => v.dueToday);
+  const habitsDone = habitsDue.filter((v) => v.doneToday).length;
+
+  const overdue = openTasks.filter((t) => t.due_date !== null && t.due_date < today);
+  const dueToday = openTasks.filter((t) => t.due_date === today);
+  const activeProjects = projects.filter((p) => p.archived_at === null && p.status === "active");
+  const openByProject = new Map<string, number>();
+  for (const t of openTasks) {
+    if (t.project_id) openByProject.set(t.project_id, (openByProject.get(t.project_id) ?? 0) + 1);
+  }
+  const projectNames = new Map(projects.map((p) => [p.id, p.name]));
+  const upcoming = openTasks.slice(0, UPCOMING_LIMIT);
+
+  return (
+    <>
+      <section aria-label="Resumen" className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+        <StatCard label="Tareas abiertas" value={openTasks.length} icon={ListTodo} href="/work/tasks" />
+        <StatCard
+          label="Vencidas"
+          value={overdue.length}
+          icon={AlertTriangle}
+          tone={overdue.length > 0 ? "danger" : "neutral"}
+          href="/work/tasks"
+        />
+        <StatCard
+          label="Para hoy"
+          value={dueToday.length}
+          icon={CalendarClock}
+          tone={dueToday.length > 0 ? "warning" : "neutral"}
+          href="/work/tasks"
+        />
+        <StatCard label="Proyectos activos" value={activeProjects.length} icon={FolderKanban} href="/work/projects" />
+        <StatCard
+          label="Completadas (7 días)"
+          value={completedWeek}
+          icon={CheckCircle2}
+          tone={completedWeek > 0 ? "success" : "neutral"}
+          href="/work/tasks?status=completed"
+        />
+      </section>
+
+      <div className="mt-6 grid gap-6 lg:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Próximas tareas</CardTitle>
+            <CardDescription>Lo más urgente primero.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {upcoming.length === 0 ? (
+              <EmptyState
+                icon={ListTodo}
+                title="No tienes tareas abiertas"
+                description="Cuando crees tareas aparecerán aquí."
+              />
+            ) : (
+              <ul className="divide-y divide-border">
+                {upcoming.map((t) => {
+                  const isOverdue = t.due_date !== null && t.due_date < today;
+                  return (
+                    <li key={t.id} className="flex items-center justify-between gap-3 py-2.5">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium">{t.title}</p>
+                        <p className="truncate text-xs text-muted-foreground">
+                          {t.project_id ? (projectNames.get(t.project_id) ?? "Proyecto") : "Sin proyecto"} ·{" "}
+                          {PRIORITY_LABELS[t.priority]}
+                        </p>
+                      </div>
+                      {t.due_date ? (
+                        <Badge tone={isOverdue ? "danger" : t.due_date === today ? "warning" : "neutral"}>
+                          {isOverdue ? "Vencida · " : t.due_date === today ? "Hoy · " : ""}
+                          {formatDate(t.due_date)}
+                        </Badge>
+                      ) : null}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+            {openTasks.length > UPCOMING_LIMIT ? (
+              <Link href="/work/tasks" className="mt-3 inline-block text-sm font-medium text-primary hover:underline">
+                Ver todas ({openTasks.length})
+              </Link>
+            ) : null}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Proyectos activos</CardTitle>
+            <CardDescription>Tareas abiertas por proyecto.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {activeProjects.length === 0 ? (
+              <EmptyState
+                icon={FolderKanban}
+                title="No tienes proyectos activos"
+                description="Crea un proyecto para agrupar tus tareas."
+              />
+            ) : (
+              <ul className="divide-y divide-border">
+                {activeProjects.slice(0, PROJECTS_LIMIT).map((p) => (
+                  <li key={p.id} className="flex items-center justify-between gap-3 py-2.5">
+                    <Link
+                      href={`/work/tasks?project=${p.id}`}
+                      className="min-w-0 truncate text-sm font-medium hover:underline"
+                    >
+                      {p.name}
+                    </Link>
+                    <Badge>{openByProject.get(p.id) ?? 0} abiertas</Badge>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {activeProjects.length > PROJECTS_LIMIT ? (
+              <Link href="/work/projects" className="mt-3 inline-block text-sm font-medium text-primary hover:underline">
+                Ver todos ({activeProjects.length})
+              </Link>
+            ) : null}
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="mt-6 grid gap-6 lg:grid-cols-2">
+      <Card>
+        <CardHeader>
+          <CardTitle>Hábitos de hoy</CardTitle>
+          <CardDescription>
+            {habitsDue.length > 0
+              ? `${habitsDone} de ${habitsDue.length} cumplidos.`
+              : "Lo que toca sostener hoy."}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {habitsDue.length === 0 ? (
+            <EmptyState
+              icon={Flame}
+              title={habitViews.length === 0 ? "Aún no tienes hábitos" : "Hoy no tienes hábitos pendientes"}
+              description={habitViews.length === 0 ? "Crea uno para empezar tu primera racha." : undefined}
+              action={
+                habitViews.length === 0 ? (
+                  <Link href="/habits" className="text-sm font-medium text-primary hover:underline">
+                    Ir a Hábitos
+                  </Link>
+                ) : undefined
+              }
+            />
+          ) : (
+            <ul className="divide-y divide-border">
+              {habitsDue.map((v) => (
+                <li key={v.habit.id} className="flex items-center justify-between gap-3 py-2.5">
+                  <Link href="/habits" className="min-w-0 truncate text-sm font-medium hover:underline">
+                    {v.habit.name}
+                  </Link>
+                  <Badge tone={v.doneToday ? "success" : "neutral"}>
+                    {v.doneToday ? "Cumplido" : "Pendiente"}
+                    {v.schedule.type === "times_per_week" ? ` · ${v.weekDone}/${v.schedule.target} sem.` : ""}
+                  </Badge>
+                </li>
+              ))}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Sueño · últimos 7 días</CardTitle>
+          <CardDescription>
+            {sleep.nights > 0 ? `${sleep.nights} ${sleep.nights === 1 ? "noche registrada" : "noches registradas"}.` : "Sin registros esta semana."}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {sleep.nights === 0 ? (
+            <EmptyState
+              icon={Moon}
+              title="Aún no registras tu sueño"
+              action={
+                <Link href="/sleep" className="text-sm font-medium text-primary hover:underline">
+                  Ir a Sueño
+                </Link>
+              }
+            />
+          ) : (
+            <dl className="grid grid-cols-3 gap-3 text-center">
+              <div>
+                <dt className="text-xs text-muted-foreground">Promedio</dt>
+                <dd className="mt-1 text-lg font-semibold tabular-nums">
+                  {sleep.avgMinutes === null ? "—" : formatDuration(sleep.avgMinutes)}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-xs text-muted-foreground">Con la meta</dt>
+                <dd className="mt-1 text-lg font-semibold tabular-nums">
+                  {sleep.goalMet} de {sleep.nights}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-xs text-muted-foreground">Calidad</dt>
+                <dd className="mt-1 text-lg font-semibold tabular-nums">
+                  {sleep.avgQuality === null ? "—" : `${sleep.avgQuality} / 5`}
+                </dd>
+              </div>
+            </dl>
+          )}
+          {sleep.nights > 0 ? (
+            <Link href="/sleep" className="mt-4 inline-block text-sm font-medium text-primary hover:underline">
+              Ver detalle
+            </Link>
+          ) : null}
+        </CardContent>
+      </Card>
+      </div>
+
+      <section aria-labelledby="accesos" className="mt-8">
+        <h2 id="accesos" className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          Accesos rápidos
+        </h2>
+        <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+          {MODULES.filter((m) => m.code !== "DASHBOARD").map((m) => {
+            const Icon = MODULE_ICONS[m.code];
+            return (
+              <li key={m.code}>
+                <Link
+                  href={m.href}
+                  className="flex h-full items-center gap-2 rounded-lg border border-border bg-card p-3 text-sm font-medium transition-colors hover:bg-muted"
+                >
+                  <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+                  <span className="flex-1">{m.label}</span>
+                  {!m.available ? <span className="text-[10px] uppercase text-muted-foreground">Pronto</span> : null}
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+    </>
+  );
+}
