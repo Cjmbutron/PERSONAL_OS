@@ -217,3 +217,43 @@ describe("D-20 · archivado", () => {
     ).rejects.toThrow(/permission denied/i);
   });
 });
+
+describe("marcar cumplimiento (regresión: no se guardaba)", () => {
+  it("un upsert con DO UPDATE sobre todas las columnas es rechazado por los privilegios de columna", async () => {
+    // Es lo que genera PostgREST con .upsert({workspace_id, habit_id, log_date, completed}).
+    await expect(
+      session(db, a.userId).query(
+        `insert into public.habit_logs (workspace_id, habit_id, log_date, completed)
+         values ($1, $2, current_date - 5, true)
+         on conflict (habit_id, log_date) do update
+           set workspace_id = excluded.workspace_id, habit_id = excluded.habit_id,
+               log_date = excluded.log_date, completed = excluded.completed`,
+        [a.workspaceId, habitA],
+      ),
+    ).rejects.toThrow(/permission denied/i);
+  });
+
+  it("actualizar y luego insertar sí funciona (marcar, desmarcar y volver a marcar)", async () => {
+    const A = session(db, a.userId);
+    const setLog = async (done: boolean) => {
+      const up = await A.query(
+        "update public.habit_logs set completed = $2 where habit_id = $1 and log_date = current_date - 6 returning id",
+        [habitA, done],
+      );
+      if (up.rows.length === 0) {
+        await A.query(
+          "insert into public.habit_logs (workspace_id, habit_id, log_date, completed) values ($1, $2, current_date - 6, $3)",
+          [a.workspaceId, habitA, done],
+        );
+      }
+    };
+    await setLog(true);
+    await setLog(false);
+    await setLog(true);
+    const rows = await A.query<{ completed: boolean }>(
+      "select completed from public.habit_logs where habit_id = $1 and log_date = current_date - 6",
+      [habitA],
+    );
+    expect(rows.rows).toEqual([{ completed: true }]);
+  });
+});

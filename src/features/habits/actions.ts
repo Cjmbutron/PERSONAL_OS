@@ -112,15 +112,30 @@ export async function setHabitLog(habitId: string, date: string, completed: bool
   if (!args.success) return fail("Solicitud no válida.");
 
   const supabase = await createClient();
-  const { error } = await supabase.from("habit_logs").upsert(
-    {
+
+  // No se usa upsert: ON CONFLICT DO UPDATE exige UPDATE sobre habit_id, log_date y workspace_id,
+  // columnas que a propósito no son modificables (D-02). Se actualiza y, si no había fila, se inserta.
+  const update = () =>
+    supabase
+      .from("habit_logs")
+      .update({ completed: args.data.completed })
+      .eq("habit_id", args.data.habitId)
+      .eq("log_date", args.data.date)
+      .eq("workspace_id", workspace.id)
+      .select("id");
+
+  const first = await update();
+  let error = first.error;
+  if (!error && !first.data?.length) {
+    ({ error } = await supabase.from("habit_logs").insert({
       workspace_id: workspace.id,
       habit_id: args.data.habitId,
       log_date: args.data.date,
       completed: args.data.completed,
-    },
-    { onConflict: "habit_id,log_date" },
-  );
+    }));
+    // Otra solicitud la creó entre medias: se reintenta la actualización.
+    if (error?.code === "23505") ({ error } = await update());
+  }
 
   if (error) {
     if (error.code === "23514") return fail("No puedes registrar fechas futuras.");

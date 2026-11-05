@@ -4,7 +4,7 @@ Aplicación web modular para gestionar las dimensiones de la vida personal (trab
 Stack: Next.js (App Router) · TypeScript · Tailwind CSS · Supabase (Auth, PostgreSQL, RLS) · `@supabase/ssr` · Recharts.
 
 **Estado:** Sprint 1 implementado (autenticación, workspace automático, layout, dashboard, proyectos y tareas)
-y, del Sprint 2, los módulos de hábitos y sueño (alimentación y entrenamiento: decididos, sin implementar).
+y, del Sprint 2, los módulos de hábitos, sueño y alimentación (entrenamiento: decidido, sin implementar).
 La revisión del documento de especificación y las decisiones técnicas están en
 [`docs/01-revision-y-decisiones-sprint-1.md`](docs/01-revision-y-decisiones-sprint-1.md) y
 [`docs/02-decisiones-habitos.md`](docs/02-decisiones-habitos.md) y
@@ -22,7 +22,7 @@ npm run dev                      # http://localhost:3000
 
 ### Base de datos
 
-Aplica las migraciones de `supabase/migrations/` en orden: 
+Aplica las migraciones de `supabase/migrations/` en orden:
 
 ```bash
 supabase link --project-ref <tu-ref>

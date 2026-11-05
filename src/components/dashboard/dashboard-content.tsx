@@ -1,7 +1,12 @@
 import Link from "next/link";
-import { AlertTriangle, CalendarClock, CheckCircle2, Flame, FolderKanban, ListTodo, Moon } from "lucide-react";
+import { AlertTriangle, CalendarClock, CheckCircle2, Dumbbell, Flame, FolderKanban, ListTodo, Moon, Utensils } from "lucide-react";
 import { getHabitViews } from "@/features/habits/queries";
 import { listSleepRecords } from "@/features/sleep/queries";
+import { listMeals } from "@/features/nutrition/queries";
+import { getRoutineForMonth, listSessions } from "@/features/fitness/queries";
+import { exercisesForDay, formatKg, isoDayOfWeek, monthStart, sessionsThisWeek, setsVolume } from "@/lib/fitness/stats";
+import { weekStart } from "@/lib/habits/streaks";
+import { formatGrams, formatKcal, sumNutrients } from "@/lib/nutrition/stats";
 import { formatDuration, summarizeSleep } from "@/lib/sleep/stats";
 import { getWorkspaceContext } from "@/lib/auth/session";
 import { MODULES, PRIORITY_LABELS } from "@/lib/constants/labels";
@@ -24,13 +29,22 @@ export async function DashboardContent() {
   // "Completadas recientes": desde el inicio del día de hace 6 días en la zona del usuario (7 días con hoy).
   const since = startOfDayInstant(addDays(today, -6), ctx.profile.timezone);
 
-  const [openTasks, projects, completedWeek, habitViews, sleepWeek] = await Promise.all([
+  const [openTasks, projects, completedWeek, habitViews, sleepWeek, mealsToday, weekSessions, routine] = await Promise.all([
     listOpenTasks(ctx.workspace.id),
     listProjects(ctx.workspace.id),
     countCompletedSince(ctx.workspace.id, since.toISOString()),
     getHabitViews(ctx.workspace.id, today),
     listSleepRecords(ctx.workspace.id, { sinceDate: addDays(today, -6) }),
+    listMeals(ctx.workspace.id, { date: today }),
+    listSessions(ctx.workspace.id, { sinceDate: weekStart(today) }),
+    getRoutineForMonth(ctx.workspace.id, monthStart(today)),
   ]);
+
+  const weekVolume = setsVolume(weekSessions.flatMap((s) => s.exercises.flatMap((e) => e.sets)));
+  const trainedToday = weekSessions.some((s) => s.started_date === today);
+  const plannedToday = routine ? exercisesForDay(routine.exercises, isoDayOfWeek(today)) : [];
+
+  const nutrition = sumNutrients(mealsToday);
 
   const goalMinutes = Math.round(ctx.profile.sleep_goal_hours * 60);
   const sleep = summarizeSleep(sleepWeek, goalMinutes);
@@ -157,7 +171,7 @@ export async function DashboardContent() {
         </Card>
       </div>
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-2">
+      <div className="mt-6 grid gap-6 lg:grid-cols-2 xl:grid-cols-4">
       <Card>
         <CardHeader>
           <CardTitle>Hábitos de hoy</CardTitle>
@@ -195,6 +209,61 @@ export async function DashboardContent() {
                 </li>
               ))}
             </ul>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Entrenamiento · semana</CardTitle>
+          <CardDescription>
+            {weekSessions.length > 0
+              ? `${sessionsThisWeek(weekSessions, today)} ${sessionsThisWeek(weekSessions, today) === 1 ? "sesión" : "sesiones"} esta semana.`
+              : "Sin sesiones esta semana."}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {plannedToday.length > 0 ? (
+            <div className="mb-3">
+              <p className="text-xs font-medium text-muted-foreground">
+                Hoy toca{trainedToday ? " (ya entrenaste)" : ""}
+              </p>
+              <ul className="mt-1 text-sm">
+                {plannedToday.slice(0, 4).map((e) => (
+                  <li key={e.id} className="flex justify-between gap-2 py-0.5">
+                    <span className="truncate">{e.name}</span>
+                    <span className="shrink-0 tabular-nums text-muted-foreground">
+                      {e.target_sets} × {e.target_reps}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              {plannedToday.length > 4 ? (
+                <p className="text-xs text-muted-foreground">y {plannedToday.length - 4} más</p>
+              ) : null}
+            </div>
+          ) : null}
+          {weekSessions.length === 0 && plannedToday.length === 0 ? (
+            <EmptyState
+              icon={Dumbbell}
+              title="Aún no entrenas esta semana"
+              action={
+                <Link href="/fitness" className="text-sm font-medium text-primary hover:underline">
+                  Ir a Entrenamiento
+                </Link>
+              }
+            />
+          ) : (
+            <>
+              {weekVolume > 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  Volumen de la semana: <span className="font-semibold tabular-nums text-foreground">{formatKg(weekVolume)}</span>
+                </p>
+              ) : null}
+              <Link href="/fitness" className="mt-3 inline-block text-sm font-medium text-primary hover:underline">
+                Ver detalle
+              </Link>
+            </>
           )}
         </CardContent>
       </Card>
@@ -244,6 +313,50 @@ export async function DashboardContent() {
               Ver detalle
             </Link>
           ) : null}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Alimentación · hoy</CardTitle>
+          <CardDescription>
+            {nutrition.meals > 0
+              ? `${nutrition.meals} ${nutrition.meals === 1 ? "comida registrada" : "comidas registradas"}.`
+              : "Sin comidas registradas hoy."}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {nutrition.meals === 0 ? (
+            <EmptyState
+              icon={Utensils}
+              title="Aún no registras comidas hoy"
+              action={
+                <Link href="/nutrition" className="text-sm font-medium text-primary hover:underline">
+                  Ir a Alimentación
+                </Link>
+              }
+            />
+          ) : (
+            <>
+              <p className="text-2xl font-semibold tabular-nums">
+                {nutrition.calories === null ? "Sin calorías" : formatKcal(nutrition.calories)}
+              </p>
+              {nutrition.protein !== null || nutrition.carbs !== null || nutrition.fat !== null ? (
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {[
+                    nutrition.protein !== null ? `Proteínas ${formatGrams(nutrition.protein)}` : null,
+                    nutrition.carbs !== null ? `Carbohidratos ${formatGrams(nutrition.carbs)}` : null,
+                    nutrition.fat !== null ? `Grasas ${formatGrams(nutrition.fat)}` : null,
+                  ]
+                    .filter(Boolean)
+                    .join(" · ")}
+                </p>
+              ) : null}
+              <Link href="/nutrition" className="mt-4 inline-block text-sm font-medium text-primary hover:underline">
+                Ver detalle
+              </Link>
+            </>
+          )}
         </CardContent>
       </Card>
       </div>

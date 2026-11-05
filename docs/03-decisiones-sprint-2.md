@@ -9,8 +9,8 @@ Orden de entrega: **sueño → alimentación → entrenamiento**, cada uno con s
 | Módulo | Estado |
 |---|---|
 | Sueño | Implementado (migración 4) |
-| Alimentación | Decidido, sin implementar |
-| Entrenamiento y rutinas | Decidido, sin implementar |
+| Alimentación | Implementado (migración 5) |
+| Entrenamiento y rutinas | Implementado (migración 6) |
 
 ---
 
@@ -35,7 +35,7 @@ Orden de entrega: **sueño → alimentación → entrenamiento**, cada uno con s
 
 Limitación conocida: `sleep_date` se fija al guardar. Si cambias tu zona horaria, los registros antiguos conservan el día con que se guardaron.
 
-## 3. Alimentación (decidido, sin implementar)
+## 3. Alimentación (implementado)
 
 | ID | Decisión |
 |---|---|
@@ -43,7 +43,9 @@ Limitación conocida: `sleep_date` se fija al guardar. Si cambias tu zona horari
 | D-31 | El día de una comida es el día local de `eaten_at` (una cena a las 00:30 cuenta para el día nuevo). |
 | D-32 | **Sin metas diarias** de calorías o macros: está fuera de alcance (3.3 excluye asesoramiento nutricional). |
 
-## 4. Entrenamiento y rutinas (decidido, sin implementar)
+Detalles de implementación: la descripción es obligatoria (1 a 500 caracteres); calorías de 0 a 10 000 (entero) y gramos de 0 a 2 000 con un decimal. Un campo vacío se guarda como `NULL` ("sin dato") y es distinto de 0; los totales del día solo suman lo informado y muestran "—" si nadie registró ese dato. No se admiten comidas en el futuro (5 minutos de tolerancia).
+
+## 4. Entrenamiento y rutinas (implementado)
 
 Cambio respecto a la propuesta original: en lugar de series uniformes por ejercicio, se registran **series individuales**, y se añaden **rutinas mensuales**. Esto introduce tablas que el documento no nombra; se justifican por pedido expreso del Product Owner (regla 3 de 15.1). La sección 2.2 ya menciona "rutinas" como parte de la dimensión FITNESS.
 
@@ -66,5 +68,9 @@ D-33: el volumen de un ejercicio es la suma de `reps × weight_kg` de sus series
 | D-36 | **Cambio de mes:** la rutina vigente es la del mes calendario actual (zona del perfil). La acción "Duplicar al mes siguiente" copia la rutina con sus ejercicios, para ajustarla sin partir de cero. |
 | D-37 | **Entrenar desde la rutina:** al registrar una sesión, se puede elegir un día de la rutina vigente; se precargan sus ejercicios con las series objetivo y el usuario ajusta lo realmente hecho. La sesión guarda `routine_id`. |
 | D-38 | Integridad entre workspaces con claves foráneas compuestas, igual que en D-03: una sesión solo apunta a una rutina de su workspace. |
+
+| D-39 | `authenticated` tiene `DELETE` **solo** sobre las tablas de composición (`routine_exercises`, `workout_exercises`, `workout_sets`), siempre bajo RLS, porque editar una sesión o una rutina reemplaza sus hijos dentro de una transacción. Sesiones y rutinas (registros principales) siguen sin `DELETE`: archivado lógico (D-02, D-21). |
+
+Detalles de implementación: el guardado es transaccional mediante las funciones `save_workout_session`, `save_workout_routine` y `duplicate_workout_routine` (SECURITY INVOKER, con la RLS de quien llama). El día de una sesión (`started_date`) lo fija un trigger con la zona del perfil y no se admiten sesiones en el futuro (5 minutos de tolerancia). Una serie sin peso es de peso corporal y no suma volumen. El progreso por ejercicio compara los últimos 30 días con los 30 anteriores, agrupando por nombre sin distinguir mayúsculas, tildes ni espacios repetidos. Restaurar una rutina archivada falla con aviso si el mes ya tiene otra vigente.
 
 Lo que queda abierto en entrenamiento: si una rutina puede abarcar un periodo distinto de un mes calendario (p. ej. 4 semanas desde una fecha). La propuesta usa mes calendario porque es lo que pediste y simplifica el cambio de rutina.

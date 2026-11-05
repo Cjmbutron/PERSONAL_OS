@@ -1,4 +1,4 @@
-import type { HabitFrequency, LifeAreaCode, Priority, ProjectStatus, TaskStatus } from "@/types/database";
+import type { HabitFrequency, LifeAreaCode, MealType, Priority, ProjectStatus, TaskStatus, WorkoutType } from "@/types/database";
 
 export const TASK_STATUS_LABELS: Record<TaskStatus, string> = {
   pending: "Pendiente",
@@ -46,6 +46,21 @@ export const SLEEP_QUALITY_LABELS: Record<number, string> = {
   5: "Excelente",
 };
 
+export const WORKOUT_TYPE_LABELS: Record<WorkoutType, string> = {
+  strength: "Fuerza",
+  cardio: "Cardio",
+  mobility: "Movilidad",
+  sport: "Deporte",
+  other: "Otro",
+};
+
+export const MEAL_TYPE_LABELS: Record<MealType, string> = {
+  breakfast: "Desayuno",
+  lunch: "Almuerzo",
+  dinner: "Cena",
+  snack: "Colación",
+};
+
 /** Orden de ordenación de prioridades (mayor primero). */
 export const PRIORITY_RANK: Record<Priority, number> = { urgent: 4, high: 3, medium: 2, low: 1 };
 
@@ -62,8 +77,8 @@ export const MODULES: ModuleDefinition[] = [
   { code: "DASHBOARD", href: "/dashboard", label: "Dashboard", available: true },
   { code: "WORK", href: "/work", label: "Trabajo", available: true },
   { code: "HABITS", href: "/habits", label: "Hábitos", available: true },
-  { code: "FITNESS", href: "/fitness", label: "Entrenamiento", available: false },
-  { code: "NUTRITION", href: "/nutrition", label: "Alimentación", available: false },
+  { code: "FITNESS", href: "/fitness", label: "Entrenamiento", available: true },
+  { code: "NUTRITION", href: "/nutrition", label: "Alimentación", available: true },
   { code: "SLEEP", href: "/sleep", label: "Sueño", available: true },
   { code: "FINANCE", href: "/finance", label: "Finanzas", available: false },
   { code: "PERSONAL", href: "/personal", label: "Vida personal", available: false },
