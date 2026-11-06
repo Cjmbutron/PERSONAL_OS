@@ -66,7 +66,7 @@ export const PRIORITY_RANK: Record<Priority, number> = { urgent: 4, high: 3, med
 
 export type ModuleDefinition = {
   /** HABITS es un módulo transversal: no es una de las seis dimensiones (DEC-002). */
-  code: LifeAreaCode | "DASHBOARD" | "HABITS";
+  code: LifeAreaCode | "DASHBOARD" | "HABITS" | "REVIEW";
   href: string;
   label: string;
   available: boolean;
@@ -82,6 +82,7 @@ export const MODULES: ModuleDefinition[] = [
   { code: "SLEEP", href: "/sleep", label: "Sueño", available: true },
   { code: "FINANCE", href: "/finance", label: "Finanzas", available: true },
   { code: "PERSONAL", href: "/personal", label: "Vida personal", available: true },
+  { code: "REVIEW", href: "/review", label: "Revisión semanal", available: true },
 ];
 
 export const ACCOUNT_TYPE_LABELS: Record<AccountType, string> = {

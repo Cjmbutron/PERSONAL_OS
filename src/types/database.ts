@@ -256,6 +256,32 @@ export type GoalMilestoneRow = {
   created_at: string;
 };
 
+export type WeeklyReviewRow = {
+  id: string;
+  workspace_id: string;
+  week_start: string;
+  status: "draft" | "completed";
+  went_well: string | null;
+  to_improve: string | null;
+  learnings: string | null;
+  completed_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type WeeklyPriorityRow = {
+  id: string;
+  workspace_id: string;
+  week_start: string;
+  position: number;
+  title: string;
+  done: boolean;
+  done_at: string | null;
+  task_id: string | null;
+  goal_id: string | null;
+  created_at: string;
+};
+
 export type GoalProgressRow = {
   goal_id: string;
   workspace_id: string;
@@ -597,6 +623,32 @@ export type Database = {
         Row: GoalMilestoneRow;
         Insert: { workspace_id: string; goal_id: string; position: number; title: string; done?: boolean };
         Update: Partial<Pick<GoalMilestoneRow, "position" | "title" | "done">>;
+        Relationships: [];
+      };
+      weekly_reviews: {
+        Row: WeeklyReviewRow;
+        Insert: {
+          workspace_id: string;
+          week_start: string;
+          status?: "draft" | "completed";
+          went_well?: string | null;
+          to_improve?: string | null;
+          learnings?: string | null;
+        };
+        Update: Partial<Pick<WeeklyReviewRow, "status" | "went_well" | "to_improve" | "learnings">>;
+        Relationships: [];
+      };
+      weekly_priorities: {
+        Row: WeeklyPriorityRow;
+        Insert: {
+          workspace_id: string;
+          week_start: string;
+          position: number;
+          title: string;
+          task_id?: string | null;
+          goal_id?: string | null;
+        };
+        Update: Partial<Pick<WeeklyPriorityRow, "position" | "title" | "done">>;
         Relationships: [];
       };
       workout_routines: {

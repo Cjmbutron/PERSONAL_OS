@@ -1,6 +1,7 @@
 import {
   Apple,
   Briefcase,
+  ClipboardCheck,
   Dumbbell,
   Flame,
   LayoutDashboard,
@@ -20,4 +21,5 @@ export const MODULE_ICONS: Record<ModuleDefinition["code"], LucideIcon> = {
   SLEEP: Moon,
   FINANCE: Wallet,
   PERSONAL: Sparkles,
+  REVIEW: ClipboardCheck,
 };

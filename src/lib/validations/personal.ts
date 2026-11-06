@@ -36,3 +36,33 @@ export const goalInputSchema = z.object({
 export const goalStatusSchema = z.enum(GOAL_STATUSES, { error: "Estado no válido" });
 
 export const milestoneTitleSchema = title;
+
+// --- Revisión semanal (D-71 a D-78) -------------------------------------------------
+
+/** Una fecha cualquiera: el servidor la normaliza al lunes de su semana. */
+const weekParam = z.iso.date({ error: "Semana no válida" });
+
+export const reviewInputSchema = z.object({
+  week: weekParam,
+  wentWell: optionalText(2000),
+  toImprove: optionalText(2000),
+  learnings: optionalText(2000),
+  intent: z.enum(["draft", "complete"], { error: "Acción no válida" }),
+});
+
+/** `link` = "task:<uuid>" | "goal:<uuid>" | "" (D-74). Con vínculo, el título puede quedar vacío. */
+export const priorityInputSchema = z
+  .object({
+    week: weekParam,
+    title: optionalText(150),
+    link: z
+      .string()
+      .regex(/^((task|goal):[0-9a-f-]{36})?$/i, { error: "Vínculo no válido" })
+      .default(""),
+  })
+  .refine((v) => v.title !== null || v.link !== "", { error: "Escribe la prioridad o elige una tarea u objetivo", path: ["title"] });
+
+export function parseLink(link: string): { kind: "task" | "goal"; id: string } | null {
+  const [kind, id] = link.split(":");
+  return (kind === "task" || kind === "goal") && id ? { kind, id } : null;
+}

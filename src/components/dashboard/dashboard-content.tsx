@@ -9,6 +9,9 @@ import { weekStart } from "@/lib/habits/streaks";
 import { getBalances, getMonthlyTotals, listAccounts, listObligations } from "@/features/finance/queries";
 import { formatMoney, sumByCurrency } from "@/lib/finance/money";
 import { dueLabel, dueState } from "@/lib/finance/stats";
+import { getReview, listPriorities } from "@/features/review/queries";
+import { PriorityList } from "@/features/review/components/priority-list";
+import { cn } from "@/lib/utils/cn";
 import { listEvents, listGoals } from "@/features/personal/queries";
 import { eventWhen } from "@/features/personal/components/event-row";
 import { goalPercent } from "@/lib/personal/calendar";
@@ -29,18 +32,19 @@ const UPCOMING_LIMIT = 6;
 const PROJECTS_LIMIT = 5;
 
 /** Todo lo que se muestra sale de la base de datos del usuario; no hay cifras simuladas (D-14). */
-export async function DashboardContent() {
+export async function DashboardContent({ period = 7 }: { period?: 7 | 30 }) {
   const ctx = await getWorkspaceContext();
   const today = todayIn(ctx.profile.timezone);
-  // "Completadas recientes": desde el inicio del día de hace 6 días en la zona del usuario (7 días con hoy).
-  const since = startOfDayInstant(addDays(today, -6), ctx.profile.timezone);
+  // Indicadores por periodo (D-77): últimos 7 o 30 días contando hoy, en la zona del usuario.
+  const since = startOfDayInstant(addDays(today, -(period - 1)), ctx.profile.timezone);
+  const lastWeekMonday = addDays(weekStart(today), -7);
 
-  const [openTasks, projects, completedWeek, habitViews, sleepWeek, mealsToday, weekSessions, routine, accounts, balances, monthTotals, pendingObligations, upcomingEvents, activeGoals] = await Promise.all([
+  const [openTasks, projects, completedWeek, habitViews, sleepWeek, mealsToday, weekSessions, routine, accounts, balances, monthTotals, pendingObligations, upcomingEvents, activeGoals, weekPriorities, lastReview] = await Promise.all([
     listOpenTasks(ctx.workspace.id),
     listProjects(ctx.workspace.id),
     countCompletedSince(ctx.workspace.id, since.toISOString()),
     getHabitViews(ctx.workspace.id, today),
-    listSleepRecords(ctx.workspace.id, { sinceDate: addDays(today, -6) }),
+    listSleepRecords(ctx.workspace.id, { sinceDate: addDays(today, -(period - 1)) }),
     listMeals(ctx.workspace.id, { date: today }),
     listSessions(ctx.workspace.id, { sinceDate: weekStart(today) }),
     getRoutineForMonth(ctx.workspace.id, monthStart(today)),
@@ -50,6 +54,8 @@ export async function DashboardContent() {
     listObligations(ctx.workspace.id, "pending", 50),
     listEvents(ctx.workspace.id, today, addDays(today, 7)),
     listGoals(ctx.workspace.id, { status: "active" }),
+    listPriorities(ctx.workspace.id, weekStart(today)),
+    getReview(ctx.workspace.id, lastWeekMonday),
   ]);
 
   // Finanzas (D-56): saldo por moneda, gastos del mes y obligaciones vencidas o próximas. Nunca se mezclan monedas.
@@ -79,8 +85,49 @@ export async function DashboardContent() {
   const projectNames = new Map(projects.map((p) => [p.id, p.name]));
   const upcoming = openTasks.slice(0, UPCOMING_LIMIT);
 
+  const reviewPending = lastReview?.status !== "completed";
+
   return (
     <>
+      <div className="mb-4 flex items-center justify-end gap-1" role="group" aria-label="Periodo de los indicadores">
+        <span className="mr-1 text-xs text-muted-foreground">Periodo</span>
+        {([7, 30] as const).map((p) => (
+          <Link
+            key={p}
+            href={p === 7 ? "/dashboard" : `/dashboard?period=${p}`}
+            aria-current={period === p ? "true" : undefined}
+            className={cn(
+              "rounded-full border px-3 py-1 text-xs font-medium",
+              period === p ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:bg-muted",
+            )}
+          >
+            {p} días
+          </Link>
+        ))}
+      </div>
+
+      <section aria-label="Esta semana" className="mb-6 rounded-lg border border-border bg-card p-4">
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <h2 className="text-sm font-semibold">Esta semana</h2>
+          <Link href="/review" className="text-sm font-medium text-primary hover:underline">
+            {reviewPending ? "Revisar la semana pasada" : "Planificar la próxima"}
+          </Link>
+        </div>
+        {weekPriorities.length === 0 ? (
+          <p className="mt-2 text-sm text-muted-foreground">
+            No definiste prioridades para esta semana.{" "}
+            <Link href="/review" className="font-medium text-primary hover:underline">
+              Elige hasta 5
+            </Link>
+            .
+          </p>
+        ) : (
+          <div className="mt-2">
+            <PriorityList week={weekStart(today)} priorities={weekPriorities} editable={false} />
+          </div>
+        )}
+      </section>
+
       <section aria-label="Resumen" className="grid grid-cols-2 gap-3 lg:grid-cols-5">
         <StatCard label="Tareas abiertas" value={openTasks.length} icon={ListTodo} href="/work/tasks" />
         <StatCard
@@ -99,7 +146,7 @@ export async function DashboardContent() {
         />
         <StatCard label="Proyectos activos" value={activeProjects.length} icon={FolderKanban} href="/work/projects" />
         <StatCard
-          label="Completadas (7 días)"
+          label={`Completadas (${period} días)`}
           value={completedWeek}
           icon={CheckCircle2}
           tone={completedWeek > 0 ? "success" : "neutral"}
@@ -397,7 +444,7 @@ export async function DashboardContent() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Sueño · últimos 7 días</CardTitle>
+          <CardTitle>Sueño · últimos {period} días</CardTitle>
           <CardDescription>
             {sleep.nights > 0 ? `${sleep.nights} ${sleep.nights === 1 ? "noche registrada" : "noches registradas"}.` : "Sin registros esta semana."}
           </CardDescription>

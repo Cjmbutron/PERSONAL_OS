@@ -9,8 +9,15 @@ export const optionalUuid = emptyToNull(z.uuid({ error: "Identificador no válid
 
 export const optionalDate = emptyToNull(z.iso.date({ error: "Fecha no válida" }));
 
+/** Texto opcional: tras recortar espacios, vacío se guarda como null (no como cadena vacía). */
 export const optionalText = (max: number) =>
-  emptyToNull(z.string().trim().max(max, { error: `Máximo ${max} caracteres` }));
+  emptyToNull(
+    z
+      .string()
+      .trim()
+      .max(max, { error: `Máximo ${max} caracteres` })
+      .transform((v) => (v === "" ? null : v)),
+  );
 
 /** Convierte FormData en objeto plano (ignorando los campos internos de React/Next). */
 export function formDataToObject(formData: FormData): Record<string, FormDataEntryValue> {
