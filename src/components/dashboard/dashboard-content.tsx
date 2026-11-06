@@ -1,11 +1,14 @@
 import Link from "next/link";
-import { AlertTriangle, CalendarClock, CheckCircle2, Dumbbell, Flame, FolderKanban, ListTodo, Moon, Utensils } from "lucide-react";
+import { AlertTriangle, CalendarClock, CheckCircle2, Dumbbell, Flame, FolderKanban, ListTodo, Moon, Utensils, Wallet } from "lucide-react";
 import { getHabitViews } from "@/features/habits/queries";
 import { listSleepRecords } from "@/features/sleep/queries";
 import { listMeals } from "@/features/nutrition/queries";
 import { getRoutineForMonth, listSessions } from "@/features/fitness/queries";
 import { exercisesForDay, formatKg, isoDayOfWeek, monthStart, sessionsThisWeek, setsVolume } from "@/lib/fitness/stats";
 import { weekStart } from "@/lib/habits/streaks";
+import { getBalances, getMonthlyTotals, listAccounts, listObligations } from "@/features/finance/queries";
+import { formatMoney, sumByCurrency } from "@/lib/finance/money";
+import { dueLabel, dueState } from "@/lib/finance/stats";
 import { formatGrams, formatKcal, sumNutrients } from "@/lib/nutrition/stats";
 import { formatDuration, summarizeSleep } from "@/lib/sleep/stats";
 import { getWorkspaceContext } from "@/lib/auth/session";
@@ -29,7 +32,7 @@ export async function DashboardContent() {
   // "Completadas recientes": desde el inicio del día de hace 6 días en la zona del usuario (7 días con hoy).
   const since = startOfDayInstant(addDays(today, -6), ctx.profile.timezone);
 
-  const [openTasks, projects, completedWeek, habitViews, sleepWeek, mealsToday, weekSessions, routine] = await Promise.all([
+  const [openTasks, projects, completedWeek, habitViews, sleepWeek, mealsToday, weekSessions, routine, accounts, balances, monthTotals, pendingObligations] = await Promise.all([
     listOpenTasks(ctx.workspace.id),
     listProjects(ctx.workspace.id),
     countCompletedSince(ctx.workspace.id, since.toISOString()),
@@ -38,7 +41,16 @@ export async function DashboardContent() {
     listMeals(ctx.workspace.id, { date: today }),
     listSessions(ctx.workspace.id, { sinceDate: weekStart(today) }),
     getRoutineForMonth(ctx.workspace.id, monthStart(today)),
+    listAccounts(ctx.workspace.id),
+    getBalances(ctx.workspace.id),
+    getMonthlyTotals(ctx.workspace.id, monthStart(today), monthStart(today)),
+    listObligations(ctx.workspace.id, "pending", 50),
   ]);
+
+  // Finanzas (D-56): saldo por moneda, gastos del mes y obligaciones vencidas o próximas. Nunca se mezclan monedas.
+  const balanceTotals = sumByCurrency(accounts.map((a) => ({ currency: a.currency, amount: balances.get(a.id)?.balance ?? a.opening_balance })));
+  const monthExpenses = monthTotals.filter((t) => t.kind === "expense");
+  const urgentObligations = pendingObligations.filter((o) => dueState(o.due_date, today) !== "upcoming");
 
   const weekVolume = setsVolume(weekSessions.flatMap((s) => s.exercises.flatMap((e) => e.sets)));
   const trainedToday = weekSessions.some((s) => s.started_date === today);
@@ -209,6 +221,62 @@ export async function DashboardContent() {
                 </li>
               ))}
             </ul>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Finanzas</CardTitle>
+          <CardDescription>Saldo, gastos del mes y vencimientos.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {accounts.length === 0 ? (
+            <EmptyState
+              icon={Wallet}
+              title="Aún no tienes cuentas"
+              action={
+                <Link href="/finance" className="text-sm font-medium text-primary hover:underline">
+                  Crear una cuenta
+                </Link>
+              }
+            />
+          ) : (
+            <>
+              <dl className="flex flex-col gap-2 text-sm">
+                {[...balanceTotals].map(([currency, amount]) => (
+                  <div key={currency} className="flex items-baseline justify-between gap-2">
+                    <dt className="text-muted-foreground">Saldo ({currency})</dt>
+                    <dd className="font-semibold tabular-nums">{formatMoney(amount, currency)}</dd>
+                  </div>
+                ))}
+                {monthExpenses.map((t) => (
+                  <div key={t.currency} className="flex items-baseline justify-between gap-2">
+                    <dt className="text-muted-foreground">Gastos del mes ({t.currency})</dt>
+                    <dd className="tabular-nums">{formatMoney(t.total, t.currency)}</dd>
+                  </div>
+                ))}
+              </dl>
+              {urgentObligations.length > 0 ? (
+                <div className="mt-3 border-t border-border pt-3">
+                  <p className="text-xs font-medium text-muted-foreground">Obligaciones</p>
+                  <ul className="mt-1 text-sm">
+                    {urgentObligations.slice(0, 3).map((o) => (
+                      <li key={o.id} className="flex items-center justify-between gap-2 py-0.5">
+                        <span className="min-w-0 truncate">{o.name}</span>
+                        <Badge tone={dueState(o.due_date, today) === "overdue" ? "danger" : "warning"}>{dueLabel(o.due_date, today)}</Badge>
+                      </li>
+                    ))}
+                  </ul>
+                  {urgentObligations.length > 3 ? (
+                    <p className="text-xs text-muted-foreground">y {urgentObligations.length - 3} más</p>
+                  ) : null}
+                </div>
+              ) : null}
+              <Link href="/finance/transactions" className="mt-3 inline-block text-sm font-medium text-primary hover:underline">
+                Ver movimientos
+              </Link>
+            </>
           )}
         </CardContent>
       </Card>

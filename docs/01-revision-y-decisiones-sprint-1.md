@@ -115,4 +115,4 @@ Campos añadidos que el documento no nombra, con su justificación (regla 3 de 1
 
 ## 7. Pendiente del documento (sección 17)
 
-Sin cerrar y sin implementar: 17.4 (eliminación definitiva), 17.5 (moneda), 17.6 (transferencias), 17.7 (recurrencia de hábitos), 17.8 (eventos de día completo), 17.9 (resto de módulos) y 17.10 (criterios de las 50 historias).
+Cerradas en `04-decisiones-sprint-3-finanzas.md` (sin implementar): 17.5 (moneda) y 17.6 (transferencias). Cerradas antes: 17.7 (hábitos, `02-decisiones-habitos.md`) y 17.9 de sueño, alimentación y entrenamiento (`03-decisiones-sprint-2.md`). Sin cerrar: 17.4 (eliminación definitiva), 17.8 (eventos de día completo), 17.9 de vida personal y 17.10 (criterios de las 50 historias).

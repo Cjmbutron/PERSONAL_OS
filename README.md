@@ -4,11 +4,12 @@ Aplicación web modular para gestionar las dimensiones de la vida personal (trab
 Stack: Next.js (App Router) · TypeScript · Tailwind CSS · Supabase (Auth, PostgreSQL, RLS) · `@supabase/ssr` · Recharts.
 
 **Estado:** Sprint 1 implementado (autenticación, workspace automático, layout, dashboard, proyectos y tareas)
-y, del Sprint 2, los módulos de hábitos, sueño y alimentación (entrenamiento: decidido, sin implementar).
+y el Sprint 2 completo: hábitos, sueño, alimentación y entrenamiento (series y rutinas mensuales).
 La revisión del documento de especificación y las decisiones técnicas están en
 [`docs/01-revision-y-decisiones-sprint-1.md`](docs/01-revision-y-decisiones-sprint-1.md) y
 [`docs/02-decisiones-habitos.md`](docs/02-decisiones-habitos.md) y
-[`docs/03-decisiones-sprint-2.md`](docs/03-decisiones-sprint-2.md).
+[`docs/03-decisiones-sprint-2.md`](docs/03-decisiones-sprint-2.md) y
+[`docs/04-decisiones-sprint-3-finanzas.md`](docs/04-decisiones-sprint-3-finanzas.md) (Finanzas: decididas; implementados cuentas y categorías).
 
 ## Puesta en marcha
 
@@ -48,7 +49,7 @@ En **Authentication → URL Configuration** añade `http://localhost:3000/auth/c
 ```text
 src/app/            Rutas (grupos (auth) y (dashboard))
 src/components/     ui/ (base estilo shadcn), layout/, dashboard/, shared/
-src/features/       Lógica por dominio: auth, projects, tasks
+src/features/       Lógica por dominio: auth, projects, tasks, habits, sleep, nutrition, fitness
 src/lib/            supabase/, auth/ (capa de acceso a datos), validations/, utils/, constants/
 src/proxy.ts        Refresco de sesión y redirección optimista de rutas privadas
 supabase/migrations Esquema, funciones, triggers y políticas RLS versionados

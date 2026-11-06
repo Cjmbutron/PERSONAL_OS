@@ -13,10 +13,20 @@ export const PRIORITIES = ["low", "medium", "high", "urgent"] as const;
 export const LIFE_AREA_CODES = ["WORK", "FITNESS", "NUTRITION", "SLEEP", "FINANCE", "PERSONAL"] as const;
 
 export const MEAL_TYPES = ["breakfast", "lunch", "dinner", "snack"] as const;
+export const ACCOUNT_TYPES = ["cash", "bank", "savings", "other"] as const;
+export const CATEGORY_KINDS = ["income", "expense"] as const;
+export const TRANSACTION_KINDS = ["income", "expense", "transfer_in", "transfer_out"] as const;
+export const OBLIGATION_STATUSES = ["pending", "paid", "cancelled"] as const;
+export const OBLIGATION_RECURRENCES = ["none", "monthly"] as const;
 export const WORKOUT_TYPES = ["strength", "cardio", "mobility", "sport", "other"] as const;
 export const HABIT_FREQUENCIES = ["daily", "days_of_week", "times_per_week"] as const;
 
 export type MealType = (typeof MEAL_TYPES)[number];
+export type AccountType = (typeof ACCOUNT_TYPES)[number];
+export type CategoryKind = (typeof CATEGORY_KINDS)[number];
+export type TransactionKind = (typeof TRANSACTION_KINDS)[number];
+export type ObligationStatus = (typeof OBLIGATION_STATUSES)[number];
+export type ObligationRecurrence = (typeof OBLIGATION_RECURRENCES)[number];
 export type WorkoutType = (typeof WORKOUT_TYPES)[number];
 export type HabitFrequency = (typeof HABIT_FREQUENCIES)[number];
 export type TaskStatus = (typeof TASK_STATUSES)[number];
@@ -117,6 +127,98 @@ export type SleepRecordRow = {
   updated_at: string;
   archived_at: string | null;
 };
+
+export type FinancialAccountRow = {
+  id: string;
+  workspace_id: string;
+  name: string;
+  account_type: AccountType;
+  /** ISO 4217; no cambia tras crear la cuenta (D-40). */
+  currency: string;
+  /** El saldo se calcula a partir de este valor y de los movimientos (D-44). */
+  opening_balance: number;
+  created_at: string;
+  updated_at: string;
+  archived_at: string | null;
+};
+
+export type TransactionCategoryRow = {
+  id: string;
+  workspace_id: string;
+  name: string;
+  kind: CategoryKind;
+  created_at: string;
+  updated_at: string;
+  archived_at: string | null;
+};
+
+export type TransactionRow = {
+  id: string;
+  workspace_id: string;
+  account_id: string;
+  currency: string;
+  kind: TransactionKind;
+  /** Siempre positivo; el tipo da el signo (D-46). */
+  amount: number;
+  /** Día de calendario (D-47). */
+  transaction_date: string;
+  category_id: string | null;
+  description: string | null;
+  /** Las dos patas de una transferencia comparten este id (D-50). */
+  transfer_group_id: string | null;
+  created_at: string;
+  updated_at: string;
+  archived_at: string | null;
+};
+
+export type AccountBalanceRow = {
+  account_id: string;
+  workspace_id: string;
+  currency: string;
+  balance: number;
+};
+
+export type BudgetRow = {
+  id: string;
+  workspace_id: string;
+  /** Primer día del mes calendario (D-52). */
+  period_month: string;
+  /** null = tope del total del mes. */
+  category_id: string | null;
+  currency: string;
+  amount: number;
+  created_at: string;
+  updated_at: string;
+  archived_at: string | null;
+};
+
+export type ObligationRow = {
+  id: string;
+  workspace_id: string;
+  name: string;
+  amount: number;
+  currency: string;
+  due_date: string;
+  anchor_day: number;
+  status: ObligationStatus;
+  recurrence: ObligationRecurrence;
+  category_id: string | null;
+  paid_at: string | null;
+  paid_transaction_id: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type MonthlyTotalRow = {
+  workspace_id: string;
+  currency: string;
+  month: string;
+  kind: "income" | "expense";
+  total: number;
+  movements: number;
+};
+
+export type MonthlyCategoryTotalRow = MonthlyTotalRow & { category_id: string };
 
 /** Forma del JSON que reciben las RPC transaccionales. */
 export type WorkoutExercisePayload = {
@@ -344,6 +446,61 @@ export type Database = {
         >;
         Relationships: [];
       };
+      financial_accounts: {
+        Row: FinancialAccountRow;
+        Insert: {
+          workspace_id: string;
+          name: string;
+          account_type: AccountType;
+          currency: string;
+          opening_balance?: number;
+        };
+        Update: Partial<Pick<FinancialAccountRow, "name" | "account_type" | "opening_balance" | "archived_at">>;
+        Relationships: [];
+      };
+      transaction_categories: {
+        Row: TransactionCategoryRow;
+        Insert: { workspace_id: string; name: string; kind: CategoryKind };
+        Update: Partial<Pick<TransactionCategoryRow, "name" | "archived_at">>;
+        Relationships: [];
+      };
+      transactions: {
+        Row: TransactionRow;
+        Insert: {
+          workspace_id: string;
+          account_id: string;
+          currency: string;
+          kind: "income" | "expense";
+          amount: number;
+          transaction_date: string;
+          category_id: string;
+          description?: string | null;
+        };
+        Update: Partial<Pick<TransactionRow, "amount" | "transaction_date" | "category_id" | "description" | "archived_at">>;
+        Relationships: [];
+      };
+      budgets: {
+        Row: BudgetRow;
+        Insert: { workspace_id: string; period_month: string; category_id: string | null; currency: string; amount: number };
+        Update: Partial<Pick<BudgetRow, "amount" | "archived_at">>;
+        Relationships: [];
+      };
+      financial_obligations: {
+        Row: ObligationRow;
+        Insert: {
+          workspace_id: string;
+          name: string;
+          amount: number;
+          currency: string;
+          due_date: string;
+          recurrence?: ObligationRecurrence;
+          category_id?: string | null;
+        };
+        Update: Partial<Pick<ObligationRow, "name" | "amount" | "due_date" | "recurrence" | "category_id">> & {
+          status?: "pending" | "cancelled";
+        };
+        Relationships: [];
+      };
       workout_routines: {
         Row: WorkoutRoutineRow;
         Insert: { workspace_id: string; name: string; description?: string | null; period_month: string };
@@ -392,8 +549,35 @@ export type Database = {
         Relationships: [];
       };
     };
-    Views: { [_ in never]: never };
+    Views: {
+      account_balances: { Row: AccountBalanceRow; Relationships: [] };
+      monthly_totals: { Row: MonthlyTotalRow; Relationships: [] };
+      monthly_category_totals: { Row: MonthlyCategoryTotalRow; Relationships: [] };
+    };
     Functions: {
+      copy_budgets: {
+        Args: { p_workspace_id: string; p_from_month: string; p_to_month: string };
+        Returns: number;
+      };
+      pay_obligation: {
+        Args: { p_obligation_id: string; p_account_id: string; p_paid_date: string; p_category_id: string | null };
+        Returns: string;
+      };
+      create_transfer: {
+        Args: {
+          p_workspace_id: string;
+          p_from_account: string;
+          p_to_account: string;
+          p_amount: number;
+          p_date: string;
+          p_description: string | null;
+        };
+        Returns: string;
+      };
+      archive_transfer: {
+        Args: { p_group_id: string; p_archived: boolean };
+        Returns: undefined;
+      };
       save_workout_session: {
         Args: {
           p_workspace_id: string;

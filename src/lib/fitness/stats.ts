@@ -21,25 +21,8 @@ export function normalizeExerciseName(name: string): string {
     .trim();
 }
 
-// --- Meses (D-34/D-36) -------------------------------------------------------
-
-/** "2026-11-17" → "2026-11-01". */
-export function monthStart(isoDate: string): string {
-  return `${isoDate.slice(0, 7)}-01`;
-}
-
-export function addMonths(monthIso: string, n: number): string {
-  const [y, m] = monthIso.split("-").map(Number);
-  const d = new Date(Date.UTC(y, m - 1 + n, 1));
-  return d.toISOString().slice(0, 10);
-}
-
-const MONTHS = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
-
-export function monthLabel(monthIso: string): string {
-  const [y, m] = monthIso.split("-").map(Number);
-  return `${MONTHS[m - 1]} de ${y}`;
-}
+// Los helpers de mes viven en utils/month (los usa también Finanzas).
+export { addMonths, monthLabel, monthStart } from "@/lib/utils/month";
 
 /** Día ISO de la semana (1 = lunes … 7 = domingo) de una fecha YYYY-MM-DD. */
 export function isoDayOfWeek(isoDate: string): number {
