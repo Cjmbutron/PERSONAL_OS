@@ -4,12 +4,13 @@ Aplicación web modular para gestionar las dimensiones de la vida personal (trab
 Stack: Next.js (App Router) · TypeScript · Tailwind CSS · Supabase (Auth, PostgreSQL, RLS) · `@supabase/ssr` · Recharts.
 
 **Estado:** Sprint 1 implementado (autenticación, workspace automático, layout, dashboard, proyectos y tareas)
-y el Sprint 2 completo: hábitos, sueño, alimentación y entrenamiento (series y rutinas mensuales).
+el Sprint 2 completo (hábitos, sueño, alimentación y entrenamiento con series y rutinas mensuales) y el Sprint 3 completo (finanzas) y el Sprint 4 (vida personal: calendario, objetivos con hitos).
 La revisión del documento de especificación y las decisiones técnicas están en
 [`docs/01-revision-y-decisiones-sprint-1.md`](docs/01-revision-y-decisiones-sprint-1.md) y
 [`docs/02-decisiones-habitos.md`](docs/02-decisiones-habitos.md) y
 [`docs/03-decisiones-sprint-2.md`](docs/03-decisiones-sprint-2.md) y
-[`docs/04-decisiones-sprint-3-finanzas.md`](docs/04-decisiones-sprint-3-finanzas.md) (Finanzas: decididas; implementados cuentas y categorías).
+[`docs/04-decisiones-sprint-3-finanzas.md`](docs/04-decisiones-sprint-3-finanzas.md) (Finanzas: cuentas, categorías, movimientos, transferencias, presupuestos, obligaciones y reportes) y
+[`docs/05-decisiones-sprint-4-vida-personal.md`](docs/05-decisiones-sprint-4-vida-personal.md) (Vida personal: calendario, objetivos e hitos).
 
 ## Puesta en marcha
 

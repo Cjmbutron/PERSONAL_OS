@@ -19,6 +19,7 @@ export const TRANSACTION_KINDS = ["income", "expense", "transfer_in", "transfer_
 export const OBLIGATION_STATUSES = ["pending", "paid", "cancelled"] as const;
 export const OBLIGATION_RECURRENCES = ["none", "monthly"] as const;
 export const WORKOUT_TYPES = ["strength", "cardio", "mobility", "sport", "other"] as const;
+export const GOAL_STATUSES = ["active", "paused", "completed", "cancelled"] as const;
 export const HABIT_FREQUENCIES = ["daily", "days_of_week", "times_per_week"] as const;
 
 export type MealType = (typeof MEAL_TYPES)[number];
@@ -28,6 +29,7 @@ export type TransactionKind = (typeof TRANSACTION_KINDS)[number];
 export type ObligationStatus = (typeof OBLIGATION_STATUSES)[number];
 export type ObligationRecurrence = (typeof OBLIGATION_RECURRENCES)[number];
 export type WorkoutType = (typeof WORKOUT_TYPES)[number];
+export type GoalStatus = (typeof GOAL_STATUSES)[number];
 export type HabitFrequency = (typeof HABIT_FREQUENCIES)[number];
 export type TaskStatus = (typeof TASK_STATUSES)[number];
 export type ProjectStatus = (typeof PROJECT_STATUSES)[number];
@@ -207,6 +209,58 @@ export type ObligationRow = {
   paid_transaction_id: string | null;
   created_at: string;
   updated_at: string;
+};
+
+export type CalendarEventRow = {
+  id: string;
+  workspace_id: string;
+  life_area_id: string | null;
+  title: string;
+  description: string | null;
+  location: string | null;
+  all_day: boolean;
+  starts_at: string | null;
+  ends_at: string | null;
+  start_date: string | null;
+  end_date: string | null;
+  first_day: string;
+  last_day: string;
+  created_at: string;
+  updated_at: string;
+  archived_at: string | null;
+};
+
+export type GoalRow = {
+  id: string;
+  workspace_id: string;
+  life_area_id: string | null;
+  title: string;
+  description: string | null;
+  target_date: string | null;
+  status: GoalStatus;
+  manual_progress: number;
+  completed_at: string | null;
+  created_at: string;
+  updated_at: string;
+  archived_at: string | null;
+};
+
+export type GoalMilestoneRow = {
+  id: string;
+  workspace_id: string;
+  goal_id: string;
+  position: number;
+  title: string;
+  done: boolean;
+  done_at: string | null;
+  created_at: string;
+};
+
+export type GoalProgressRow = {
+  goal_id: string;
+  workspace_id: string;
+  milestones_total: number;
+  milestones_done: number;
 };
 
 export type MonthlyTotalRow = {
@@ -501,6 +555,50 @@ export type Database = {
         };
         Relationships: [];
       };
+      calendar_events: {
+        Row: CalendarEventRow;
+        Insert: {
+          workspace_id: string;
+          title: string;
+          all_day: boolean;
+          life_area_id?: string | null;
+          description?: string | null;
+          location?: string | null;
+          starts_at?: string | null;
+          ends_at?: string | null;
+          start_date?: string | null;
+          end_date?: string | null;
+        };
+        Update: Partial<
+          Pick<
+            CalendarEventRow,
+            "life_area_id" | "title" | "description" | "location" | "all_day" | "starts_at" | "ends_at" | "start_date" | "end_date" | "archived_at"
+          >
+        >;
+        Relationships: [];
+      };
+      goals: {
+        Row: GoalRow;
+        Insert: {
+          workspace_id: string;
+          title: string;
+          life_area_id?: string | null;
+          description?: string | null;
+          target_date?: string | null;
+          status?: GoalStatus;
+          manual_progress?: number;
+        };
+        Update: Partial<
+          Pick<GoalRow, "life_area_id" | "title" | "description" | "target_date" | "status" | "manual_progress" | "archived_at">
+        >;
+        Relationships: [];
+      };
+      goal_milestones: {
+        Row: GoalMilestoneRow;
+        Insert: { workspace_id: string; goal_id: string; position: number; title: string; done?: boolean };
+        Update: Partial<Pick<GoalMilestoneRow, "position" | "title" | "done">>;
+        Relationships: [];
+      };
       workout_routines: {
         Row: WorkoutRoutineRow;
         Insert: { workspace_id: string; name: string; description?: string | null; period_month: string };
@@ -551,6 +649,7 @@ export type Database = {
     };
     Views: {
       account_balances: { Row: AccountBalanceRow; Relationships: [] };
+      goal_progress: { Row: GoalProgressRow; Relationships: [] };
       monthly_totals: { Row: MonthlyTotalRow; Relationships: [] };
       monthly_category_totals: { Row: MonthlyCategoryTotalRow; Relationships: [] };
     };

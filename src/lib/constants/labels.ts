@@ -1,4 +1,4 @@
-import type { ObligationRecurrence, ObligationStatus, AccountType, TransactionKind, CategoryKind, HabitFrequency, LifeAreaCode, MealType, Priority, ProjectStatus, TaskStatus, WorkoutType } from "@/types/database";
+import type { GoalStatus, ObligationRecurrence, ObligationStatus, AccountType, TransactionKind, CategoryKind, HabitFrequency, LifeAreaCode, MealType, Priority, ProjectStatus, TaskStatus, WorkoutType } from "@/types/database";
 
 export const TASK_STATUS_LABELS: Record<TaskStatus, string> = {
   pending: "Pendiente",
@@ -81,7 +81,7 @@ export const MODULES: ModuleDefinition[] = [
   { code: "NUTRITION", href: "/nutrition", label: "Alimentación", available: true },
   { code: "SLEEP", href: "/sleep", label: "Sueño", available: true },
   { code: "FINANCE", href: "/finance", label: "Finanzas", available: true },
-  { code: "PERSONAL", href: "/personal", label: "Vida personal", available: false },
+  { code: "PERSONAL", href: "/personal", label: "Vida personal", available: true },
 ];
 
 export const ACCOUNT_TYPE_LABELS: Record<AccountType, string> = {
@@ -112,4 +112,11 @@ export const OBLIGATION_STATUS_LABELS: Record<ObligationStatus, string> = {
 export const OBLIGATION_RECURRENCE_LABELS: Record<ObligationRecurrence, string> = {
   none: "Una sola vez",
   monthly: "Cada mes",
+};
+
+export const GOAL_STATUS_LABELS: Record<GoalStatus, string> = {
+  active: "En curso",
+  paused: "En pausa",
+  completed: "Completado",
+  cancelled: "Cancelado",
 };

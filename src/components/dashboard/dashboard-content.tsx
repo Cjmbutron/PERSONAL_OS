@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AlertTriangle, CalendarClock, CheckCircle2, Dumbbell, Flame, FolderKanban, ListTodo, Moon, Utensils, Wallet } from "lucide-react";
+import { AlertTriangle, CalendarClock, CalendarDays, Target, CheckCircle2, Dumbbell, Flame, FolderKanban, ListTodo, Moon, Utensils, Wallet } from "lucide-react";
 import { getHabitViews } from "@/features/habits/queries";
 import { listSleepRecords } from "@/features/sleep/queries";
 import { listMeals } from "@/features/nutrition/queries";
@@ -9,6 +9,9 @@ import { weekStart } from "@/lib/habits/streaks";
 import { getBalances, getMonthlyTotals, listAccounts, listObligations } from "@/features/finance/queries";
 import { formatMoney, sumByCurrency } from "@/lib/finance/money";
 import { dueLabel, dueState } from "@/lib/finance/stats";
+import { listEvents, listGoals } from "@/features/personal/queries";
+import { eventWhen } from "@/features/personal/components/event-row";
+import { goalPercent } from "@/lib/personal/calendar";
 import { formatGrams, formatKcal, sumNutrients } from "@/lib/nutrition/stats";
 import { formatDuration, summarizeSleep } from "@/lib/sleep/stats";
 import { getWorkspaceContext } from "@/lib/auth/session";
@@ -32,7 +35,7 @@ export async function DashboardContent() {
   // "Completadas recientes": desde el inicio del día de hace 6 días en la zona del usuario (7 días con hoy).
   const since = startOfDayInstant(addDays(today, -6), ctx.profile.timezone);
 
-  const [openTasks, projects, completedWeek, habitViews, sleepWeek, mealsToday, weekSessions, routine, accounts, balances, monthTotals, pendingObligations] = await Promise.all([
+  const [openTasks, projects, completedWeek, habitViews, sleepWeek, mealsToday, weekSessions, routine, accounts, balances, monthTotals, pendingObligations, upcomingEvents, activeGoals] = await Promise.all([
     listOpenTasks(ctx.workspace.id),
     listProjects(ctx.workspace.id),
     countCompletedSince(ctx.workspace.id, since.toISOString()),
@@ -45,6 +48,8 @@ export async function DashboardContent() {
     getBalances(ctx.workspace.id),
     getMonthlyTotals(ctx.workspace.id, monthStart(today), monthStart(today)),
     listObligations(ctx.workspace.id, "pending", 50),
+    listEvents(ctx.workspace.id, today, addDays(today, 7)),
+    listGoals(ctx.workspace.id, { status: "active" }),
   ]);
 
   // Finanzas (D-56): saldo por moneda, gastos del mes y obligaciones vencidas o próximas. Nunca se mezclan monedas.
@@ -275,6 +280,60 @@ export async function DashboardContent() {
               ) : null}
               <Link href="/finance/transactions" className="mt-3 inline-block text-sm font-medium text-primary hover:underline">
                 Ver movimientos
+              </Link>
+            </>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Vida personal</CardTitle>
+          <CardDescription>Eventos de los próximos 7 días y objetivos en curso.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {upcomingEvents.length === 0 && activeGoals.length === 0 ? (
+            <EmptyState
+              icon={CalendarDays}
+              title="Sin eventos ni objetivos"
+              action={
+                <Link href="/personal" className="text-sm font-medium text-primary hover:underline">
+                  Ir a Vida personal
+                </Link>
+              }
+            />
+          ) : (
+            <>
+              {upcomingEvents.length > 0 ? (
+                <ul className="text-sm">
+                  {upcomingEvents.slice(0, 3).map((e) => (
+                    <li key={e.id} className="py-0.5">
+                      <p className="truncate font-medium">{e.title}</p>
+                      <p className="truncate text-xs text-muted-foreground">{eventWhen(e, ctx.profile.timezone)}</p>
+                    </li>
+                  ))}
+                  {upcomingEvents.length > 3 ? <li className="text-xs text-muted-foreground">y {upcomingEvents.length - 3} más</li> : null}
+                </ul>
+              ) : (
+                <p className="text-sm text-muted-foreground">Sin eventos esta semana.</p>
+              )}
+              {activeGoals.length > 0 ? (
+                <div className="mt-3 border-t border-border pt-3">
+                  <p className="flex items-center gap-1 text-xs font-medium text-muted-foreground">
+                    <Target className="size-3" aria-hidden /> Objetivos
+                  </p>
+                  <ul className="mt-1 text-sm">
+                    {activeGoals.slice(0, 3).map((g) => (
+                      <li key={g.id} className="flex items-center justify-between gap-2 py-0.5">
+                        <span className="min-w-0 truncate">{g.title}</span>
+                        <Badge tone="primary">{goalPercent(g.manual_progress, g.milestonesTotal, g.milestonesDone)}%</Badge>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+              <Link href="/personal" className="mt-3 inline-block text-sm font-medium text-primary hover:underline">
+                Ver detalle
               </Link>
             </>
           )}
