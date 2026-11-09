@@ -9,6 +9,7 @@ import { addMonths, monthLabel, monthStart } from "@/lib/utils/month";
 import { monthParamSchema } from "@/lib/validations/fitness";
 import { itemsOnDay } from "@/lib/personal/calendar";
 import { getCalendarItems } from "@/features/personal/queries";
+import { quickParam } from "@/lib/utils/quick-param";
 import { EventFormDialog } from "@/features/personal/components/event-form-dialog";
 import { EventRowView } from "@/features/personal/components/event-row";
 import { MonthGrid } from "@/features/personal/components/month-grid";
@@ -89,7 +90,7 @@ async function CalendarContent({ searchParams }: { searchParams: PageProps<"/per
       <PageHeader
         title="Calendario"
         description="Tus eventos, las tareas con vencimiento y los pagos pendientes."
-        actions={<EventFormDialog areas={ctx.lifeAreas} today={today} timezone={ctx.profile.timezone} defaultDate={month === currentMonth ? today : month} trigger={trigger} />}
+        actions={<EventFormDialog defaultOpen={quickParam(raw) === "evento"} areas={ctx.lifeAreas} today={today} timezone={ctx.profile.timezone} defaultDate={month === currentMonth ? today : month} trigger={trigger} />}
       />
 
       <nav aria-label="Filtrar por dimensión" className="mb-4 flex flex-wrap gap-1.5">

@@ -1,8 +1,16 @@
 import * as React from "react";
 import { cn } from "@/lib/utils/cn";
+import { areaColor } from "@/lib/constants/areas";
 
-export function Card({ className, ...props }: React.ComponentProps<"div">) {
-  return <div className={cn("rounded-lg border border-border bg-card text-foreground", className)} {...props} />;
+/** `area` marca la tarjeta con el color de su dimensión (borde superior). */
+export function Card({ className, area, style, ...props }: React.ComponentProps<"div"> & { area?: string }) {
+  return (
+    <div
+      className={cn("rounded-xl border border-border bg-card text-foreground", area && "border-t-[3px] border-t-[var(--card-area)]", className)}
+      style={area ? ({ ...style, "--card-area": areaColor(area) } as React.CSSProperties) : style}
+      {...props}
+    />
+  );
 }
 
 export function CardHeader({ className, ...props }: React.ComponentProps<"div">) {

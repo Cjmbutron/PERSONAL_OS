@@ -5,10 +5,11 @@ import { z } from "zod";
 import { ArrowLeftRight, ChevronLeft, ChevronRight, Plus, Receipt } from "lucide-react";
 import { getWorkspaceContext } from "@/lib/auth/session";
 import { formatMoney, roundMoney } from "@/lib/finance/money";
-import { todayIn } from "@/lib/utils/date";
+import { formatDate, todayIn } from "@/lib/utils/date";
 import { addMonths, monthLabel, monthStart } from "@/lib/utils/month";
 import { monthParamSchema } from "@/lib/validations/fitness";
 import { MAX_MONTH_TRANSACTIONS, listAccounts, listCategories, listTransactions } from "@/features/finance/queries";
+import { quickParam } from "@/lib/utils/quick-param";
 import { TransactionFormDialog } from "@/features/finance/components/transaction-form-dialog";
 import { TransactionRowView } from "@/features/finance/components/transaction-row";
 import { TransferFormDialog } from "@/features/finance/components/transfer-form-dialog";
@@ -97,6 +98,11 @@ async function TransactionsContent({ searchParams }: { searchParams: PageProps<"
 
   const canRegister = activeAccounts.length > 0;
 
+  // Agrupado por día, del más reciente al más antiguo (el orden dentro del día lo da la consulta).
+  const byDayMap = new Map<string, typeof transactions>();
+  for (const t of transactions) byDayMap.set(t.transaction_date, [...(byDayMap.get(t.transaction_date) ?? []), t]);
+  const byDay = [...byDayMap].sort(([a], [b]) => (a < b ? 1 : a > b ? -1 : 0));
+
   return (
     <>
       <PageHeader
@@ -107,6 +113,7 @@ async function TransactionsContent({ searchParams }: { searchParams: PageProps<"
             <div className="flex flex-wrap gap-2">
               <TransactionFormDialog
                 kind="income"
+                defaultOpen={quickParam(raw) === "ingreso"}
                 accounts={activeAccounts}
                 categories={activeCategories}
                 today={today}
@@ -120,6 +127,7 @@ async function TransactionsContent({ searchParams }: { searchParams: PageProps<"
               />
               <TransactionFormDialog
                 kind="expense"
+                defaultOpen={quickParam(raw) === "gasto"}
                 accounts={activeAccounts}
                 categories={activeCategories}
                 today={today}
@@ -258,23 +266,35 @@ async function TransactionsContent({ searchParams }: { searchParams: PageProps<"
               Se muestran los {MAX_MONTH_TRANSACTIONS} movimientos más recientes del mes; los totales podrían estar incompletos.
             </p>
           ) : null}
-          <ul className="flex flex-col gap-2" aria-label="Movimientos">
-            {transactions.map((t) => (
-              <TransactionRowView
-                key={t.id}
-                transaction={t}
-                accountName={accountName.get(t.account_id) ?? "Cuenta"}
-                counterpartName={(() => {
-                  const c = counterpart(t);
-                  return c ? accountName.get(c.account_id) : undefined;
-                })()}
-                categoryName={t.category_id ? categoryName.get(t.category_id) : undefined}
-                accounts={activeAccounts}
-                categories={activeCategories}
-                today={today}
-              />
+          <div className="flex flex-col gap-5">
+            {byDay.map(([day, list]) => (
+              <section key={day} aria-label={`Movimientos del ${formatDate(day)}`}>
+                <h2 className="mb-1.5 flex items-baseline justify-between gap-2 text-sm font-medium">
+                  <span>
+                    {day === today ? "Hoy" : formatDate(day)}
+                    {day === today ? <span className="ml-1.5 font-normal text-muted-foreground">{formatDate(day)}</span> : null}
+                  </span>
+                </h2>
+                <ul className="flex flex-col gap-2">
+                  {list.map((t) => (
+                    <TransactionRowView
+                      key={t.id}
+                      transaction={t}
+                      accountName={accountName.get(t.account_id) ?? "Cuenta"}
+                      counterpartName={(() => {
+                        const c = counterpart(t);
+                        return c ? accountName.get(c.account_id) : undefined;
+                      })()}
+                      categoryName={t.category_id ? categoryName.get(t.category_id) : undefined}
+                      accounts={activeAccounts}
+                      categories={activeCategories}
+                      today={today}
+                    />
+                  ))}
+                </ul>
+              </section>
             ))}
-          </ul>
+          </div>
         </>
       )}
     </>

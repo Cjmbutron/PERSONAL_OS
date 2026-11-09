@@ -8,6 +8,7 @@ import { buildSleepSeries, formatDuration, summarizeSleep } from "@/lib/sleep/st
 import { addDays, formatDate, todayIn } from "@/lib/utils/date";
 import { listSleepRecords } from "@/features/sleep/queries";
 import { SleepChart } from "@/features/sleep/components/sleep-chart";
+import { quickParam } from "@/lib/utils/quick-param";
 import { SleepFormDialog } from "@/features/sleep/components/sleep-form-dialog";
 import { SleepGoalForm } from "@/features/sleep/components/sleep-goal-form";
 import { SleepRow } from "@/features/sleep/components/sleep-row";
@@ -56,7 +57,8 @@ export default function SleepPage({ searchParams }: PageProps<"/sleep">) {
 }
 
 async function SleepContent({ searchParams }: { searchParams: PageProps<"/sleep">["searchParams"] }) {
-  const { range, archived } = paramsSchema.parse(first(await searchParams));
+  const raw = await searchParams;
+  const { range, archived } = paramsSchema.parse(first(raw));
   const days = Number(range);
 
   const ctx = await getWorkspaceContext();
@@ -83,6 +85,7 @@ async function SleepContent({ searchParams }: { searchParams: PageProps<"/sleep"
         actions={
           archived ? null : (
             <SleepFormDialog
+              defaultOpen={quickParam(raw) === "sueno"}
               timezone={timezone}
               today={today}
               trigger={

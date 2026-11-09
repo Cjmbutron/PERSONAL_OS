@@ -7,6 +7,9 @@ import { cn } from "@/lib/utils/cn";
 const TABS = [
   { href: "/finance", label: "Cuentas", exact: true },
   { href: "/finance/transactions", label: "Movimientos", exact: false },
+  { href: "/finance/budgets", label: "Presupuestos", exact: false },
+  { href: "/finance/obligations", label: "Obligaciones", exact: false },
+  { href: "/finance/reports", label: "Reportes", exact: false },
   { href: "/finance/categories", label: "Categorías", exact: false },
 ];
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import { clearQuickParam } from "@/lib/utils/quick-param";
 import { saveEvent } from "@/features/personal/actions";
 import { initialActionState, type ActionState } from "@/lib/actions";
 import { instantToLocalInput } from "@/lib/utils/date";
@@ -138,6 +139,7 @@ export function EventFormDialog({
   timezone,
   defaultDate,
   trigger,
+  defaultOpen = false,
 }: {
   event?: CalendarEventRow;
   areas: LifeAreaRow[];
@@ -145,10 +147,18 @@ export function EventFormDialog({
   timezone: string;
   defaultDate?: string;
   trigger: React.ReactNode;
+  /** Abre el formulario al montar (lo usa el registro rápido). */
+  defaultOpen?: boolean;
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(defaultOpen);
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(v) => {
+        setOpen(v);
+        if (!v) clearQuickParam();
+      }}
+    >
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent>
         <DialogHeader>

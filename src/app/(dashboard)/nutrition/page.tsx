@@ -8,6 +8,7 @@ import { formatGrams, formatKcal, groupTotalsByDate, sumNutrients, suggestMealTy
 import { addDays, formatDate, instantToLocalInput, isoWeekdayLabel, todayIn } from "@/lib/utils/date";
 import { dateParamSchema } from "@/lib/validations/nutrition";
 import { listMeals } from "@/features/nutrition/queries";
+import { quickParam } from "@/lib/utils/quick-param";
 import { MealFormDialog } from "@/features/nutrition/components/meal-form-dialog";
 import { MealRow } from "@/features/nutrition/components/meal-row";
 import { StatCard } from "@/components/dashboard/stat-card";
@@ -107,6 +108,7 @@ async function NutritionContent({ searchParams }: { searchParams: PageProps<"/nu
         description="Registra lo que comes y revisa tu día."
         actions={
           <MealFormDialog
+            defaultOpen={quickParam(raw) === "comida"}
             timezone={timezone}
             defaultEatenAt={defaultEatenAt}
             defaultType={defaultType}

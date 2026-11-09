@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { Suspense } from "react";
+import { TrendsCard, TrendsSkeleton } from "./trends-card";
 import { AlertTriangle, CalendarClock, CalendarDays, Target, CheckCircle2, Dumbbell, Flame, FolderKanban, ListTodo, Moon, Utensils, Wallet } from "lucide-react";
 import { getHabitViews } from "@/features/habits/queries";
 import { listSleepRecords } from "@/features/sleep/queries";
@@ -13,7 +15,7 @@ import { getReview, listPriorities } from "@/features/review/queries";
 import { PriorityList } from "@/features/review/components/priority-list";
 import { cn } from "@/lib/utils/cn";
 import { listEvents, listGoals } from "@/features/personal/queries";
-import { eventWhen } from "@/features/personal/components/event-row";
+import { eventWhen } from "@/lib/personal/event-format";
 import { goalPercent } from "@/lib/personal/calendar";
 import { formatGrams, formatKcal, sumNutrients } from "@/lib/nutrition/stats";
 import { formatDuration, summarizeSleep } from "@/lib/sleep/stats";
@@ -155,7 +157,7 @@ export async function DashboardContent({ period = 7 }: { period?: 7 | 30 }) {
       </section>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
-        <Card>
+        <Card area="work">
           <CardHeader>
             <CardTitle>Próximas tareas</CardTitle>
             <CardDescription>Lo más urgente primero.</CardDescription>
@@ -199,7 +201,7 @@ export async function DashboardContent({ period = 7 }: { period?: 7 | 30 }) {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card area="work">
           <CardHeader>
             <CardTitle>Proyectos activos</CardTitle>
             <CardDescription>Tareas abiertas por proyecto.</CardDescription>
@@ -236,7 +238,7 @@ export async function DashboardContent({ period = 7 }: { period?: 7 | 30 }) {
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2 xl:grid-cols-4">
-      <Card>
+      <Card area="habits">
         <CardHeader>
           <CardTitle>Hábitos de hoy</CardTitle>
           <CardDescription>
@@ -277,7 +279,7 @@ export async function DashboardContent({ period = 7 }: { period?: 7 | 30 }) {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card area="finance">
         <CardHeader>
           <CardTitle>Finanzas</CardTitle>
           <CardDescription>Saldo, gastos del mes y vencimientos.</CardDescription>
@@ -333,7 +335,7 @@ export async function DashboardContent({ period = 7 }: { period?: 7 | 30 }) {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card area="personal">
         <CardHeader>
           <CardTitle>Vida personal</CardTitle>
           <CardDescription>Eventos de los próximos 7 días y objetivos en curso.</CardDescription>
@@ -387,7 +389,7 @@ export async function DashboardContent({ period = 7 }: { period?: 7 | 30 }) {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card area="fitness">
         <CardHeader>
           <CardTitle>Entrenamiento · semana</CardTitle>
           <CardDescription>
@@ -442,7 +444,7 @@ export async function DashboardContent({ period = 7 }: { period?: 7 | 30 }) {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card area="sleep">
         <CardHeader>
           <CardTitle>Sueño · últimos {period} días</CardTitle>
           <CardDescription>
@@ -490,7 +492,7 @@ export async function DashboardContent({ period = 7 }: { period?: 7 | 30 }) {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card area="nutrition">
         <CardHeader>
           <CardTitle>Alimentación · hoy</CardTitle>
           <CardDescription>
@@ -534,6 +536,10 @@ export async function DashboardContent({ period = 7 }: { period?: 7 | 30 }) {
         </CardContent>
       </Card>
       </div>
+
+      <Suspense fallback={<TrendsSkeleton />}>
+        <TrendsCard />
+      </Suspense>
 
       <section aria-labelledby="accesos" className="mt-8">
         <h2 id="accesos" className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">

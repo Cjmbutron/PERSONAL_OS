@@ -70,7 +70,7 @@ export function HabitRow({
   }
 
   return (
-    <li className="rounded-lg border border-border bg-card p-3 sm:p-4">
+    <li className="rounded-xl border border-border bg-card p-3 sm:p-4">
       <div className="flex items-start gap-3">
         <button
           type="button"
@@ -80,12 +80,12 @@ export function HabitRow({
           disabled={archived || pending}
           onClick={() => toggleDay(today, !doneToday)}
           className={cn(
-            "mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full border-2 transition-colors",
+            "mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-full border-2 transition-colors md:size-8",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
             doneToday ? "border-success bg-success text-white" : "border-border hover:border-primary",
           )}
         >
-          {doneToday ? <Check className="size-4" aria-hidden /> : null}
+          {doneToday ? <Check className="size-5 md:size-4" aria-hidden /> : null}
         </button>
 
         <div className="min-w-0 flex-1">
@@ -138,7 +138,7 @@ export function HabitRow({
       </div>
 
       {!archived ? (
-        <ul className="mt-3 flex gap-1.5 pl-11" aria-label={`Últimos 7 días de “${habit.name}”`}>
+        <ul className="mt-3 flex gap-1.5 pl-[3.25rem] md:pl-11" aria-label={`Últimos 7 días de “${habit.name}”`}>
           {recent.map((d) => (
             <li key={d.date}>
               <button
@@ -150,7 +150,7 @@ export function HabitRow({
                 disabled={pending}
                 onClick={() => toggleDay(d.date, !d.done)}
                 className={cn(
-                  "flex size-7 items-center justify-center rounded-md border text-[11px] font-medium transition-colors",
+                  "flex size-9 items-center justify-center rounded-lg border text-xs font-medium transition-colors md:size-7 md:rounded-md md:text-[11px]",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed",
                   d.done
                     ? "border-success bg-success/15 text-success"

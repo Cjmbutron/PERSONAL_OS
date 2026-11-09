@@ -43,12 +43,10 @@ export function TransactionRowView({
   const label = `${title} del ${formatDate(t.transaction_date)}`;
 
   return (
-    <li className="flex items-center gap-3 rounded-lg border border-border bg-card p-3">
+    <li className="flex items-center gap-3 rounded-xl border border-border bg-card p-3">
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-medium">{title}</p>
         <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-          <span className="tabular-nums">{formatDate(t.transaction_date)}</span>
-          <span aria-hidden>·</span>
           <span>{accountName}</span>
           {transfer ? <Badge>Transferencia</Badge> : categoryName ? <Badge>{categoryName}</Badge> : null}
           {transfer && t.description ? <span className="truncate">{t.description}</span> : null}

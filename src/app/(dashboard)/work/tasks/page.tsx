@@ -7,6 +7,7 @@ import { todayIn } from "@/lib/utils/date";
 import { listTasks } from "@/features/tasks/queries";
 import { listProjects } from "@/features/projects/queries";
 import { TaskFilters } from "@/features/tasks/components/task-filters";
+import { quickParam } from "@/lib/utils/quick-param";
 import { TaskFormDialog } from "@/features/tasks/components/task-form-dialog";
 import { TaskRow } from "@/features/tasks/components/task-row";
 import { Button } from "@/components/ui/button";
@@ -37,7 +38,8 @@ export default function TasksPage({ searchParams }: PageProps<"/work/tasks">) {
 }
 
 async function TasksContent({ searchParams }: { searchParams: PageProps<"/work/tasks">["searchParams"] }) {
-  const filters = taskFiltersSchema.parse(firstValues(await searchParams));
+  const raw = await searchParams;
+  const filters = taskFiltersSchema.parse(firstValues(raw));
   const ctx = await getWorkspaceContext();
   const [tasks, projects] = await Promise.all([
     listTasks(ctx.workspace.id, filters),
@@ -56,6 +58,7 @@ async function TasksContent({ searchParams }: { searchParams: PageProps<"/work/t
         description={filters.archived ? "Tareas archivadas." : "Lo que tienes por hacer, ordenado por vencimiento."}
         actions={
           <TaskFormDialog
+            defaultOpen={quickParam(raw) === "tarea"}
             projects={projects}
             areas={ctx.lifeAreas}
             defaultProjectId={filters.project && filters.project !== "none" ? filters.project : undefined}

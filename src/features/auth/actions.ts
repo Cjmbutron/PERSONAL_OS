@@ -71,11 +71,7 @@ export async function signUp(_prev: ActionState, formData: FormData): Promise<Ac
     }
     console.error("[auth] signUp", error.code, error.message);
     // Mensaje deliberadamente genérico para no permitir enumerar cuentas existentes.
- return fail(
-    `Error de registro: ${error.message} (${error.code ?? error.status})`,
-    { values }
-  );
-
+    return fail("No se pudo crear la cuenta. Si ya tienes una, inicia sesión.", { values });
   }
 
   // Con la confirmación de correo desactivada Supabase devuelve sesión inmediata.

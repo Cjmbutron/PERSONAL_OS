@@ -72,7 +72,7 @@ export function RoutineFormDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="md:max-w-2xl">
         <DialogHeader>
           <DialogTitle>{routine ? "Editar rutina" : "Nueva rutina"}</DialogTitle>
           <DialogDescription>Planifica los ejercicios de cada día de la semana para el mes.</DialogDescription>

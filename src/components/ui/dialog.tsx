@@ -9,17 +9,25 @@ export const Dialog = DialogPrimitive.Root;
 export const DialogTrigger = DialogPrimitive.Trigger;
 export const DialogClose = DialogPrimitive.Close;
 
+/**
+ * `placement="sheet"` (por defecto): en el celular sube desde abajo, al alcance del pulgar; en escritorio, centrado.
+ * `placement="free"`: sin posicionamiento propio (lo define quien lo usa, p. ej. el panel de módulos).
+ */
 export function DialogContent({
   className,
   children,
+  placement = "sheet",
   ...props
-}: React.ComponentProps<typeof DialogPrimitive.Content>) {
+}: React.ComponentProps<typeof DialogPrimitive.Content> & { placement?: "sheet" | "free" }) {
   return (
     <DialogPrimitive.Portal>
       <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/50" />
       <DialogPrimitive.Content
         className={cn(
-          "fixed left-1/2 top-1/2 z-50 max-h-[90dvh] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-lg border border-border bg-card p-6 shadow-lg",
+          "fixed z-50 max-h-[90dvh] overflow-y-auto border border-border bg-card p-6 shadow-xl",
+          placement === "sheet" &&
+            "max-md:inset-x-0 max-md:bottom-0 max-md:w-full max-md:rounded-t-2xl max-md:pb-[max(1.5rem,env(safe-area-inset-bottom))] md:left-1/2 md:top-1/2 md:w-[calc(100%-2rem)] md:max-w-lg md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-2xl",
+          placement === "free" && "left-1/2 top-1/2 w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-2xl",
           className,
         )}
         {...props}

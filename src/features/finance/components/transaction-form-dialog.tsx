@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import { clearQuickParam } from "@/lib/utils/quick-param";
 import { saveTransaction } from "@/features/finance/actions";
 import { initialActionState, type ActionState } from "@/lib/actions";
 import { formatMoney } from "@/lib/finance/money";
@@ -118,6 +119,7 @@ export function TransactionFormDialog({
   today,
   defaultAccountId,
   trigger,
+  defaultOpen = false,
 }: {
   kind: Kind;
   transaction?: TransactionRow;
@@ -126,11 +128,19 @@ export function TransactionFormDialog({
   today: string;
   defaultAccountId?: string;
   trigger: React.ReactNode;
+  /** Abre el formulario al montar (lo usa el registro rápido). */
+  defaultOpen?: boolean;
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(defaultOpen);
   const label = kind === "income" ? "ingreso" : "gasto";
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(v) => {
+        setOpen(v);
+        if (!v) clearQuickParam();
+      }}
+    >
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent>
         <DialogHeader>

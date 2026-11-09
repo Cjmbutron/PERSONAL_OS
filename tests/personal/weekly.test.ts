@@ -58,3 +58,25 @@ describe("flujo de dinero", () => {
     ]);
   });
 });
+
+import { lastWeekStarts, sumByWeek } from "@/lib/personal/weekly";
+
+describe("tendencias por semana", () => {
+  it("lista los lunes de las últimas semanas, de antigua a actual", () => {
+    expect(lastWeekStarts("2026-11-06", 4)).toEqual(["2026-10-12", "2026-10-19", "2026-10-26", "2026-11-02"]);
+  });
+  it("suma por semana e ignora lo que queda fuera", () => {
+    const weeks = lastWeekStarts("2026-11-06", 4);
+    const out = sumByWeek(
+      [
+        { date: "2026-11-02", value: 10.1 },
+        { date: "2026-11-08", value: 5.2 }, // domingo de la misma semana
+        { date: "2026-10-13", value: 1 },
+        { date: "2026-09-01", value: 99 }, // fuera
+        { date: "2026-11-09", value: 7 }, // semana futura
+      ],
+      weeks,
+    );
+    expect(out).toEqual([1, 0, 0, 15.3]);
+  });
+});

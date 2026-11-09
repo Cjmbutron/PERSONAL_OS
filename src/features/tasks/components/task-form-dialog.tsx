@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { clearQuickParam } from "@/lib/utils/quick-param";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import type { LifeAreaRow, TaskRow } from "@/types/database";
 import { TaskForm, type ProjectOption } from "./task-form";
@@ -15,16 +16,25 @@ export function TaskFormDialog({
   areas,
   defaultProjectId,
   trigger,
+  defaultOpen = false,
 }: {
   task?: TaskRow;
   projects: ProjectOption[];
   areas: LifeAreaRow[];
   defaultProjectId?: string;
   trigger: React.ReactNode;
+  /** Abre el formulario al montar (lo usa el registro rápido). */
+  defaultOpen?: boolean;
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(defaultOpen);
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(v) => {
+        setOpen(v);
+        if (!v) clearQuickParam();
+      }}
+    >
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent>
         <DialogHeader>

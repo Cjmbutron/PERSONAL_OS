@@ -22,7 +22,7 @@ export function SessionFormDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="md:max-w-2xl">
         <DialogHeader>
           <DialogTitle>{session ? "Editar entrenamiento" : "Registrar entrenamiento"}</DialogTitle>
           <DialogDescription>La hora se interpreta en tu zona horaria.</DialogDescription>

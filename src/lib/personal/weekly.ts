@@ -63,3 +63,19 @@ export function flowByCurrency(rows: readonly { kind: string; currency: string; 
 export function canReviewWeek(monday: string, today: string): boolean {
   return isoWeekday(monday) === 1 && monday <= weekStart(today);
 }
+
+/** Lunes de las últimas `count` semanas, de la más antigua a la actual. */
+export function lastWeekStarts(today: string, count: number): string[] {
+  const current = weekStart(today);
+  return Array.from({ length: count }, (_, i) => addDays(current, -7 * (count - 1 - i)));
+}
+
+/** Suma `value` por semana (clave: lunes). Las fechas fuera de las semanas dadas se ignoran. */
+export function sumByWeek(rows: readonly { date: string; value: number }[], weeks: readonly string[]): number[] {
+  const totals = new Map(weeks.map((w) => [w, 0]));
+  for (const r of rows) {
+    const w = weekStart(r.date);
+    if (totals.has(w)) totals.set(w, Math.round(((totals.get(w) as number) + r.value) * 100) / 100);
+  }
+  return weeks.map((w) => totals.get(w) as number);
+}

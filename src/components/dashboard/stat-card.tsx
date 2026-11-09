@@ -30,7 +30,7 @@ export function StatCard({
         <Icon className="size-5" aria-hidden />
       </span>
       <div className="min-w-0">
-        <p className={cn("text-2xl font-semibold leading-none tabular-nums", TONES[tone])}>{value}</p>
+        <p className={cn("font-display text-2xl font-semibold leading-none tabular-nums", TONES[tone])}>{value}</p>
         <p className="mt-1 text-sm text-muted-foreground">{label}</p>
       </div>
     </Card>

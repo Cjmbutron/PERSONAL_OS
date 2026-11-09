@@ -1,37 +1,57 @@
 @import "tailwindcss";
+@import "@fontsource-variable/bricolage-grotesque";
 
 /* Tokens de diseño. Los pares texto/fondo cumplen contraste AA (RNF-09). */
 :root {
-  --background: #fafafa;
-  --foreground: #18181b;
-  --card: #ffffff;
-  --muted: #f4f4f5;
-  --muted-foreground: #52525b;
-  --border: #e4e4e7;
-  --primary: #4338ca;
+  /* Identidad "Altiplano": papel de niebla, tinta de lago y un color propio por dimensión. */
+  --background: #eef2f1;
+  --foreground: #10252b;
+  --card: #fbfcfb;
+  --muted: #e3eaea;
+  --muted-foreground: #4a5f64;
+  --border: #cfdbda;
+  --primary: #0a6a6c;
   --primary-foreground: #ffffff;
   --destructive: #b91c1c;
   --destructive-foreground: #ffffff;
   --success: #15803d;
   --warning: #b45309;
-  --ring: #6366f1;
+  --ring: #0a6a6c;
+
+  --area-dashboard: var(--primary);
+  --area-review: var(--primary);
+  --area-work: #1d5d94;
+  --area-habits: #b4322b;
+  --area-fitness: #a5560a;
+  --area-nutrition: #3f7d1f;
+  --area-sleep: #5b46a8;
+  --area-finance: #7a5c00;
+  --area-personal: #a1306e;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0b0b0d;
-    --foreground: #f4f4f5;
-    --card: #141417;
-    --muted: #1f1f23;
-    --muted-foreground: #a1a1aa;
-    --border: #2e2e33;
-    --primary: #818cf8;
-    --primary-foreground: #0b0b0d;
+    --background: #0c1517;
+    --foreground: #e6f0ef;
+    --card: #131f22;
+    --muted: #1a2a2d;
+    --muted-foreground: #9db3b5;
+    --border: #264045;
+    --primary: #4fc3c0;
+    --primary-foreground: #062022;
     --destructive: #f87171;
     --destructive-foreground: #0b0b0d;
     --success: #4ade80;
     --warning: #fbbf24;
-    --ring: #818cf8;
+    --ring: #4fc3c0;
+
+    --area-work: #7db8ee;
+    --area-habits: #f08a80;
+    --area-fitness: #f0a45c;
+    --area-nutrition: #9fd36f;
+    --area-sleep: #b4a4f0;
+    --area-finance: #e6c34d;
+    --area-personal: #ee91c4;
   }
 }
 
@@ -51,6 +71,16 @@
   --color-ring: var(--ring);
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --font-display: "Bricolage Grotesque Variable", var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Títulos y cifras grandes: la tipografía con carácter se reserva para lo que se lee de un vistazo. */
+h1,
+h2,
+.font-display {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+  letter-spacing: -0.01em;
 }
 
 body {

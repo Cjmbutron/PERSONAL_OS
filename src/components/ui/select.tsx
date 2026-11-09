@@ -8,7 +8,7 @@ import { controlClasses } from "./input";
  */
 export function Select({ className, children, ...props }: React.ComponentProps<"select">) {
   return (
-    <select className={cn(controlClasses, "h-10", className)} {...props}>
+    <select className={cn(controlClasses, "h-11 md:h-10", className)} {...props}>
       {children}
     </select>
   );

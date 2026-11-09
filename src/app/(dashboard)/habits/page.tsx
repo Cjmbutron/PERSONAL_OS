@@ -38,6 +38,9 @@ async function HabitsContent({ searchParams }: { searchParams: PageProps<"/habit
   const views = await getHabitViews(ctx.workspace.id, today, archived);
   const areaNames = new Map(ctx.lifeAreas.map((a) => [a.id, a.name]));
 
+  // Pendientes de hoy primero; luego los cumplidos; al final los que hoy no tocan.
+  const rank = (v: (typeof views)[number]) => (v.dueToday && !v.doneToday ? 0 : v.doneToday ? 1 : 2);
+  const ordered = archived ? views : [...views].sort((a, b) => rank(a) - rank(b));
   const dueCount = views.filter((v) => v.dueToday).length;
   const doneCount = views.filter((v) => v.dueToday && v.doneToday).length;
 
@@ -67,6 +70,17 @@ async function HabitsContent({ searchParams }: { searchParams: PageProps<"/habit
         }
       />
 
+      {!archived && dueCount > 0 ? (
+        <div className="mb-4" role="progressbar" aria-valuemin={0} aria-valuemax={dueCount} aria-valuenow={doneCount} aria-label="Hábitos cumplidos hoy">
+          <div className="h-2 overflow-hidden rounded-full bg-muted">
+            <div className="h-full rounded-full bg-[var(--area-habits)] transition-all" style={{ width: `${Math.round((doneCount / dueCount) * 100)}%` }} />
+          </div>
+          <p className="mt-1.5 text-xs text-muted-foreground">
+            {doneCount === dueCount ? "Hoy cumpliste todos tus hábitos." : `Te faltan ${dueCount - doneCount} por marcar hoy.`}
+          </p>
+        </div>
+      ) : null}
+
       <nav aria-label="Vista" className="mb-4 flex gap-2 text-sm">
         <Link
           href="/habits"
@@ -95,7 +109,7 @@ async function HabitsContent({ searchParams }: { searchParams: PageProps<"/habit
         />
       ) : (
         <ul className="flex flex-col gap-2" aria-label="Lista de hábitos">
-          {views.map((view) => (
+          {ordered.map((view) => (
             <HabitRow
               key={view.habit.id}
               view={view}
