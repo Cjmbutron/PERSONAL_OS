@@ -11,7 +11,9 @@ La revisión del documento de especificación y las decisiones técnicas están 
 [`docs/03-decisiones-sprint-2.md`](docs/03-decisiones-sprint-2.md) y
 [`docs/04-decisiones-sprint-3-finanzas.md`](docs/04-decisiones-sprint-3-finanzas.md) (Finanzas: cuentas, categorías, movimientos, transferencias, presupuestos, obligaciones y reportes) y
 [`docs/05-decisiones-sprint-4-vida-personal.md`](docs/05-decisiones-sprint-4-vida-personal.md) (Vida personal: calendario, objetivos e hitos) y
-[`docs/06-decisiones-sprint-5-revision-semanal.md`](docs/06-decisiones-sprint-5-revision-semanal.md) (revisión semanal, prioridades y filtro de periodo).
+[`docs/06-decisiones-sprint-5-revision-semanal.md`](docs/06-decisiones-sprint-5-revision-semanal.md) (revisión semanal, prioridades y filtro de periodo) y
+[`docs/07-identidad-visual-y-registro-rapido.md`](docs/07-identidad-visual-y-registro-rapido.md) (tema, colores por dimensión y registro rápido).
+[`docs/08-decisiones-sprint-6-automatizacion.md`](docs/08-decisiones-sprint-6-automatizacion.md) (tareas recurrentes y centro de avisos).
 
 ## Puesta en marcha
 

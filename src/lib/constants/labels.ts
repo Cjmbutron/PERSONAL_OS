@@ -1,5 +1,11 @@
 import type { GoalStatus, ObligationRecurrence, ObligationStatus, AccountType, TransactionKind, CategoryKind, HabitFrequency, LifeAreaCode, MealType, Priority, ProjectStatus, TaskStatus, WorkoutType } from "@/types/database";
 
+export const RECURRENCE_LABELS = {
+  daily: "Cada día",
+  weekly: "Cada semana",
+  monthly: "Cada mes",
+} as const;
+
 export const TASK_STATUS_LABELS: Record<TaskStatus, string> = {
   pending: "Pendiente",
   in_progress: "En curso",

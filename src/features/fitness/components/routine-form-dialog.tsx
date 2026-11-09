@@ -1,5 +1,6 @@
 "use client";
 
+import { useToast } from "@/components/ui/toast";
 import { useActionState, useState } from "react";
 import { saveWorkoutRoutine } from "@/features/fitness/actions";
 import type { RoutineDetail } from "@/features/fitness/queries";
@@ -11,10 +12,14 @@ import { SubmitButton } from "@/components/shared/submit-button";
 import { RoutineEditor, plannedFromRows } from "./routine-editor";
 
 function RoutineForm({ routine, month, onDone }: { routine?: RoutineDetail; month: string; onDone: () => void }) {
+  const toast = useToast();
   const [state, formAction] = useActionState(
     async (prev: ActionState, formData: FormData) => {
       const result = await saveWorkoutRoutine(prev, formData);
-      if (result.ok) onDone();
+      if (result.ok) {
+        toast("Rutina guardada");
+        onDone();
+      }
       return result;
     },
     initialActionState,

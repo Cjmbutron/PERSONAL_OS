@@ -3,10 +3,11 @@
 import { useOptimistic, useState, useTransition } from "react";
 import { Archive, ArchiveRestore, Pencil } from "lucide-react";
 import { setTaskArchived, setTaskStatus } from "@/features/tasks/actions";
-import { PRIORITY_LABELS, TASK_STATUS_LABELS } from "@/lib/constants/labels";
+import { PRIORITY_LABELS, RECURRENCE_LABELS, TASK_STATUS_LABELS } from "@/lib/constants/labels";
 import { cn } from "@/lib/utils/cn";
 import { formatDate, isOverdue } from "@/lib/utils/date";
 import type { LifeAreaRow, TaskRow as Task } from "@/types/database";
+import { useToast } from "@/components/ui/toast";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { TaskFormDialog } from "./task-form-dialog";
@@ -27,6 +28,7 @@ export function TaskRow({
   areas: LifeAreaRow[];
   today: string;
 }) {
+  const toast = useToast();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string>();
   const [status, setOptimisticStatus] = useOptimistic(task.status);
@@ -43,6 +45,7 @@ export function TaskRow({
       setOptimisticStatus(checked ? "completed" : "pending");
       const result = await setTaskStatus(task.id, checked ? "completed" : "pending");
       if (!result.ok) setError(result.message);
+      else if (result.message) toast(result.message);
     });
   }
 
@@ -82,6 +85,7 @@ export function TaskRow({
               {formatDate(task.due_date)}
             </Badge>
           ) : null}
+          {task.recurrence ? <Badge>Se repite · {RECURRENCE_LABELS[task.recurrence].toLowerCase()}</Badge> : null}
           {archived ? <Badge>Archivada</Badge> : null}
         </div>
         {error ? (

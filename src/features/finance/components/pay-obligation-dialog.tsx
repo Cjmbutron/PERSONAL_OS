@@ -1,5 +1,6 @@
 "use client";
 
+import { useToast } from "@/components/ui/toast";
 import { useActionState, useState } from "react";
 import { payObligation } from "@/features/finance/actions";
 import { initialActionState, type ActionState } from "@/lib/actions";
@@ -23,10 +24,14 @@ function PayForm({
   today: string;
   onDone: () => void;
 }) {
+  const toast = useToast();
   const [state, formAction] = useActionState(
     async (prev: ActionState, formData: FormData) => {
       const result = await payObligation(prev, formData);
-      if (result.ok) onDone();
+      if (result.ok) {
+        toast("Pago registrado");
+        onDone();
+      }
       return result;
     },
     initialActionState,

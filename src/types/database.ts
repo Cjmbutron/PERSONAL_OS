@@ -85,9 +85,23 @@ export type TaskRow = {
   priority: Priority;
   due_date: string | null;
   completed_at: string | null;
+  recurrence: TaskRecurrence | null;
+  recurrence_day: number | null;
+  recurrence_source_id: string | null;
   created_at: string;
   updated_at: string;
   archived_at: string | null;
+};
+
+export const TASK_RECURRENCES = ["daily", "weekly", "monthly"] as const;
+export type TaskRecurrence = (typeof TASK_RECURRENCES)[number];
+
+export type NoticeStateRow = {
+  workspace_id: string;
+  notice_key: string;
+  state: "read" | "dismissed";
+  created_at: string;
+  updated_at: string;
 };
 
 export type HabitRow = {
@@ -449,13 +463,28 @@ export type Database = {
           status?: TaskStatus;
           priority?: Priority;
           due_date?: string | null;
+          recurrence?: TaskRecurrence | null;
         };
         Update: Partial<
           Pick<
             TaskRow,
-            "project_id" | "life_area_id" | "title" | "description" | "status" | "priority" | "due_date" | "archived_at"
+            | "project_id"
+            | "life_area_id"
+            | "title"
+            | "description"
+            | "status"
+            | "priority"
+            | "due_date"
+            | "archived_at"
+            | "recurrence"
           >
         >;
+        Relationships: [];
+      };
+      notice_states: {
+        Row: NoticeStateRow;
+        Insert: { workspace_id: string; notice_key: string; state: "read" | "dismissed" };
+        Update: { state?: "read" | "dismissed" };
         Relationships: [];
       };
       habits: {
@@ -706,6 +735,10 @@ export type Database = {
       monthly_category_totals: { Row: MonthlyCategoryTotalRow; Relationships: [] };
     };
     Functions: {
+      complete_task: {
+        Args: { p_task_id: string };
+        Returns: string | null;
+      };
       copy_budgets: {
         Args: { p_workspace_id: string; p_from_month: string; p_to_month: string };
         Returns: number;

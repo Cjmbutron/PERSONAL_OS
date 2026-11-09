@@ -1,5 +1,6 @@
 "use client";
 
+import { useToast } from "@/components/ui/toast";
 import { useActionState } from "react";
 import { createSleepRecord, updateSleepRecord } from "@/features/sleep/actions";
 import { initialActionState, type ActionState } from "@/lib/actions";
@@ -23,10 +24,14 @@ export function SleepForm({
 }) {
   const editing = Boolean(record);
 
+  const toast = useToast();
   const [state, formAction] = useActionState(
     async (prev: ActionState, formData: FormData) => {
       const result = await (editing ? updateSleepRecord : createSleepRecord)(prev, formData);
-      if (result.ok) onDone();
+      if (result.ok) {
+        toast("Sueño guardado");
+        onDone();
+      }
       return result;
     },
     initialActionState,

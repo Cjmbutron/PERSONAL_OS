@@ -1,5 +1,6 @@
 "use client";
 
+import { useToast } from "@/components/ui/toast";
 import { useActionState, useState } from "react";
 import { clearQuickParam } from "@/lib/utils/quick-param";
 import { saveEvent } from "@/features/personal/actions";
@@ -26,10 +27,14 @@ function EventForm({
   defaultDate?: string;
   onDone: () => void;
 }) {
+  const toast = useToast();
   const [state, formAction] = useActionState(
     async (prev: ActionState, formData: FormData) => {
       const result = await saveEvent(prev, formData);
-      if (result.ok) onDone();
+      if (result.ok) {
+        toast("Evento guardado");
+        onDone();
+      }
       return result;
     },
     initialActionState,

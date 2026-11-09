@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { PRIORITIES, PROJECT_STATUSES, TASK_STATUSES } from "@/types/database";
+import { PRIORITIES, PROJECT_STATUSES, TASK_RECURRENCES, TASK_STATUSES } from "@/types/database";
 import { optionalDate, optionalText, optionalUuid } from "./common";
 
 /** Los límites replican los CHECK de PostgreSQL (migración 2): la BD es la última defensa (RNF-07). */
@@ -16,6 +16,14 @@ export const taskInputSchema = z.object({
   dueDate: optionalDate,
   projectId: optionalUuid,
   lifeAreaId: optionalUuid,
+  recurrence: z
+    .enum(TASK_RECURRENCES)
+    .nullable()
+    .catch(null)
+    .default(null),
+}).refine((t) => !t.recurrence || t.dueDate, {
+  path: ["dueDate"],
+  error: "Una tarea que se repite necesita fecha de vencimiento",
 });
 
 export const projectInputSchema = z.object({

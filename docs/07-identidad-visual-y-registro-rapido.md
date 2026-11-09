@@ -31,3 +31,12 @@ Archivos: `src/components/layout/bottom-nav.tsx`, `src/components/dashboard/{tre
 | D-87 | **Diálogos como hoja inferior** en el celular (se abren desde abajo, al alcance del pulgar); centrados en escritorio. `DialogContent` acepta `placement="free"` para el panel lateral de módulos. |
 | D-88 | **Hábitos**: objetivos táctiles más grandes, barra de progreso del día y orden "pendientes primero, luego cumplidos". |
 | D-89 | **Finanzas**: movimientos agrupados por día (más reciente primero, "Hoy" destacado) en lugar de repetir la fecha en cada fila. |
+
+## Avisos, tema, acceso y dashboard
+
+| ID | Decisión |
+|---|---|
+| D-90 | **Avisos breves** (`useToast`) al guardar cualquier formulario ("Tarea guardada", "Movimiento guardado"…) y al archivar o restaurar, este último con **Deshacer**. En el celular aparecen sobre la barra inferior. |
+| D-91 | **Selector de tema** en la cabecera: automático (sigue al dispositivo), claro u oscuro; se recuerda en el dispositivo y se aplica antes de pintar para evitar parpadeos. |
+| D-92 | **Acceso**: en escritorio, panel de marca con las siete dimensiones y su color; en el celular, marca compacta. Logotipo de tres picos. |
+| D-93 | **Dashboard**: bloque "Atención de hoy" arriba con lo que pide acción, de lo más urgente a lo menos (tareas y pagos vencidos, eventos y vencimientos de hoy, hábitos pendientes, sueño sin registrar); cada línea lleva a donde se resuelve. Si no hay nada, lo dice. |

@@ -1,10 +1,11 @@
 "use client";
 
+import { useToast } from "@/components/ui/toast";
 import { useActionState } from "react";
 import { createTask, updateTask } from "@/features/tasks/actions";
 import { initialActionState, type ActionState } from "@/lib/actions";
-import { PRIORITY_LABELS, TASK_STATUS_LABELS } from "@/lib/constants/labels";
-import { PRIORITIES, TASK_STATUSES, type LifeAreaRow, type ProjectRow, type TaskRow } from "@/types/database";
+import { PRIORITY_LABELS, RECURRENCE_LABELS, TASK_STATUS_LABELS } from "@/lib/constants/labels";
+import { PRIORITIES, TASK_RECURRENCES, TASK_STATUSES, type LifeAreaRow, type ProjectRow, type TaskRow } from "@/types/database";
 import { FormMessage } from "@/components/shared/form-message";
 import { SelectField, TextField, TextareaField } from "@/components/shared/fields";
 import { SubmitButton } from "@/components/shared/submit-button";
@@ -27,10 +28,14 @@ export function TaskForm({
   const editing = Boolean(task);
 
   // El cierre del diálogo se dispara desde la propia acción, sin efectos secundarios en render.
+  const toast = useToast();
   const [state, formAction] = useActionState(
     async (prev: ActionState, formData: FormData) => {
       const result = await (editing ? updateTask : createTask)(prev, formData);
-      if (result.ok) onDone();
+      if (result.ok) {
+        toast("Tarea guardada");
+        onDone();
+      }
       return result;
     },
     initialActionState,
@@ -98,6 +103,18 @@ export function TaskForm({
           error={state.fieldErrors?.projectId}
         />
       </div>
+
+      <SelectField
+        name="recurrence"
+        label="Repetir"
+        placeholder="No se repite"
+        defaultValue={v("recurrence", task?.recurrence ?? "")}
+        options={TASK_RECURRENCES.map((r) => ({ value: r, label: RECURRENCE_LABELS[r] }))}
+        error={state.fieldErrors?.recurrence}
+      />
+      <p className="-mt-2 text-xs text-muted-foreground">
+        Al completarla se crea la siguiente con la próxima fecha. Necesita fecha de vencimiento.
+      </p>
 
       <SelectField
         name="lifeAreaId"

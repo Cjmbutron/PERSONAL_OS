@@ -13,6 +13,7 @@ function revalidateWork() {
   revalidatePath("/work/tasks");
   revalidatePath("/work/projects");
   revalidatePath("/dashboard");
+  revalidatePath("/notices");
 }
 
 function toColumns(input: TaskInput) {
@@ -24,6 +25,7 @@ function toColumns(input: TaskInput) {
     due_date: input.dueDate,
     project_id: input.projectId,
     life_area_id: input.lifeAreaId,
+    recurrence: input.recurrence,
   };
 }
 
@@ -80,6 +82,16 @@ export async function setTaskStatus(id: string, status: TaskStatus): Promise<Act
   if (!args.success) return fail("Solicitud no válida.");
 
   const supabase = await createClient();
+
+  // Completar pasa por la función transaccional: si la tarea se repite, crea la siguiente (D-94).
+  if (args.data.status === "completed") {
+    const { data: nextId, error } = await supabase.rpc("complete_task", { p_task_id: args.data.id });
+    if (error) return dbErrorToState(error, "completeTask");
+    revalidateWork();
+    revalidatePath("/notices");
+    return { ok: true, message: nextId ? "Tarea completada. Creé la siguiente de la serie." : undefined };
+  }
+
   const { data, error } = await supabase
     .from("tasks")
     .update({ status: args.data.status })

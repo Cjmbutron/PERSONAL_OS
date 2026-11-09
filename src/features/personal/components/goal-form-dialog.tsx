@@ -1,5 +1,6 @@
 "use client";
 
+import { useToast } from "@/components/ui/toast";
 import { useActionState, useState } from "react";
 import { saveGoal } from "@/features/personal/actions";
 import { initialActionState, type ActionState } from "@/lib/actions";
@@ -20,10 +21,14 @@ function GoalForm({
   hasMilestones: boolean;
   onDone: () => void;
 }) {
+  const toast = useToast();
   const [state, formAction] = useActionState(
     async (prev: ActionState, formData: FormData) => {
       const result = await saveGoal(prev, formData);
-      if (result.ok) onDone();
+      if (result.ok) {
+        toast("Objetivo guardado");
+        onDone();
+      }
       return result;
     },
     initialActionState,

@@ -1,5 +1,6 @@
 "use client";
 
+import { useToast } from "@/components/ui/toast";
 import { useActionState, useState } from "react";
 import { saveAccount } from "@/features/finance/actions";
 import { initialActionState, type ActionState } from "@/lib/actions";
@@ -12,10 +13,14 @@ import { SelectField, TextField } from "@/components/shared/fields";
 import { SubmitButton } from "@/components/shared/submit-button";
 
 function AccountForm({ account, onDone }: { account?: FinancialAccountRow; onDone: () => void }) {
+  const toast = useToast();
   const [state, formAction] = useActionState(
     async (prev: ActionState, formData: FormData) => {
       const result = await saveAccount(prev, formData);
-      if (result.ok) onDone();
+      if (result.ok) {
+        toast("Cuenta guardada");
+        onDone();
+      }
       return result;
     },
     initialActionState,

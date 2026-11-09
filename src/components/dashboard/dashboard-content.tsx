@@ -89,6 +89,22 @@ export async function DashboardContent({ period = 7 }: { period?: 7 | 30 }) {
 
   const reviewPending = lastReview?.status !== "completed";
 
+  // "Atención de hoy": lo que pide acción ahora, de lo más urgente a lo menos. Cada línea lleva a donde se resuelve.
+  const eventsToday = upcomingEvents.filter((e) => e.first_day <= today && today <= e.last_day);
+  const attention: { key: string; text: string; href: string; tone: "danger" | "warning" | "neutral" }[] = [];
+  const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
+  if (overdue.length > 0) attention.push({ key: "overdue", text: `${plural(overdue.length, "tarea vencida", "tareas vencidas")}`, href: "/work/tasks", tone: "danger" });
+  const overdueMoney = pendingObligations.filter((o) => dueState(o.due_date, today) === "overdue").length;
+  if (overdueMoney > 0) attention.push({ key: "money-overdue", text: `${plural(overdueMoney, "pago vencido", "pagos vencidos")}`, href: "/finance/obligations", tone: "danger" });
+  if (eventsToday.length > 0)
+    attention.push({ key: "events", text: eventsToday.length === 1 ? `Hoy: ${eventsToday[0].title}` : `${eventsToday.length} eventos hoy`, href: "/personal/calendar", tone: "warning" });
+  if (dueToday.length > 0) attention.push({ key: "due-today", text: `${plural(dueToday.length, "tarea vence hoy", "tareas vencen hoy")}`, href: "/work/tasks", tone: "warning" });
+  const soonMoney = urgentObligations.length - overdueMoney;
+  if (soonMoney > 0) attention.push({ key: "money-soon", text: `${plural(soonMoney, "pago por vencer", "pagos por vencer")}`, href: "/finance/obligations", tone: "warning" });
+  if (habitsDue.length - habitsDone > 0)
+    attention.push({ key: "habits", text: `${plural(habitsDue.length - habitsDone, "hábito pendiente", "hábitos pendientes")} hoy`, href: "/habits", tone: "neutral" });
+  if (!sleepWeek.some((r) => r.sleep_date === today)) attention.push({ key: "sleep", text: "Registra cómo dormiste", href: "/sleep?nuevo=sueno", tone: "neutral" });
+
   return (
     <>
       <div className="mb-4 flex items-center justify-end gap-1" role="group" aria-label="Periodo de los indicadores">
@@ -107,6 +123,33 @@ export async function DashboardContent({ period = 7 }: { period?: 7 | 30 }) {
           </Link>
         ))}
       </div>
+
+      <section aria-label="Atención de hoy" className="mb-6">
+        <h2 className="mb-2 text-sm font-semibold">Atención de hoy</h2>
+        {attention.length === 0 ? (
+          <p className="flex items-center gap-2 rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground">
+            <CheckCircle2 className="size-4 text-success" aria-hidden />
+            Todo al día: nada vencido ni pendiente por ahora.
+          </p>
+        ) : (
+          <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {attention.map((a) => (
+              <li key={a.key}>
+                <Link
+                  href={a.href}
+                  className={cn(
+                    "flex min-h-11 items-center gap-2 rounded-xl border bg-card px-3 py-2 text-sm font-medium hover:bg-muted",
+                    a.tone === "danger" ? "border-destructive/40 text-destructive" : a.tone === "warning" ? "border-warning/40" : "border-border",
+                  )}
+                >
+                  {a.tone === "danger" ? <AlertTriangle className="size-4 shrink-0" aria-hidden /> : null}
+                  <span className="min-w-0 truncate">{a.text}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
 
       <section aria-label="Esta semana" className="mb-6 rounded-lg border border-border bg-card p-4">
         <div className="flex flex-wrap items-start justify-between gap-2">

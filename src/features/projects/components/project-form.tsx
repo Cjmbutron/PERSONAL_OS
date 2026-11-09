@@ -1,5 +1,6 @@
 "use client";
 
+import { useToast } from "@/components/ui/toast";
 import { useActionState } from "react";
 import { createProject, updateProject } from "@/features/projects/actions";
 import { initialActionState, type ActionState } from "@/lib/actions";
@@ -20,10 +21,14 @@ export function ProjectForm({
 }) {
   const editing = Boolean(project);
 
+  const toast = useToast();
   const [state, formAction] = useActionState(
     async (prev: ActionState, formData: FormData) => {
       const result = await (editing ? updateProject : createProject)(prev, formData);
-      if (result.ok) onDone();
+      if (result.ok) {
+        toast("Proyecto guardado");
+        onDone();
+      }
       return result;
     },
     initialActionState,

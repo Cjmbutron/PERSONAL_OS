@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { Archive, ArchiveRestore } from "lucide-react";
 import type { ActionState } from "@/lib/actions";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/toast";
 
 /** Archivar / restaurar con mensaje de error accesible (D-45). */
 export function ArchiveButton({
@@ -19,6 +20,7 @@ export function ArchiveButton({
 }) {
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string>();
+  const toast = useToast();
 
   return (
     <div className="flex flex-col items-end gap-1">
@@ -31,7 +33,16 @@ export function ArchiveButton({
           setError(undefined);
           startTransition(async () => {
             const result = await action(id, !archived);
-            if (!result.ok) setError(result.message);
+            if (!result.ok) {
+              setError(result.message);
+              return;
+            }
+            // Se puede deshacer desde el aviso, volviendo al estado anterior.
+            toast({
+              message: archived ? "Restaurado" : "Archivado",
+              actionLabel: "Deshacer",
+              onAction: () => void action(id, archived),
+            });
           });
         }}
       >

@@ -1,5 +1,6 @@
 "use client";
 
+import { useToast } from "@/components/ui/toast";
 import { useActionState, useState } from "react";
 import { saveCategory } from "@/features/finance/actions";
 import { initialActionState, type ActionState } from "@/lib/actions";
@@ -19,10 +20,14 @@ function CategoryForm({
   defaultKind: CategoryKind;
   onDone: () => void;
 }) {
+  const toast = useToast();
   const [state, formAction] = useActionState(
     async (prev: ActionState, formData: FormData) => {
       const result = await saveCategory(prev, formData);
-      if (result.ok) onDone();
+      if (result.ok) {
+        toast("Categoría guardada");
+        onDone();
+      }
       return result;
     },
     initialActionState,

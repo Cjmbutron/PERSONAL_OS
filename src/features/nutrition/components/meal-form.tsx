@@ -1,5 +1,6 @@
 "use client";
 
+import { useToast } from "@/components/ui/toast";
 import { useActionState } from "react";
 import { createMeal, updateMeal } from "@/features/nutrition/actions";
 import { initialActionState, type ActionState } from "@/lib/actions";
@@ -26,10 +27,14 @@ export function MealForm({
 }) {
   const editing = Boolean(meal);
 
+  const toast = useToast();
   const [state, formAction] = useActionState(
     async (prev: ActionState, formData: FormData) => {
       const result = await (editing ? updateMeal : createMeal)(prev, formData);
-      if (result.ok) onDone();
+      if (result.ok) {
+        toast("Comida guardada");
+        onDone();
+      }
       return result;
     },
     initialActionState,

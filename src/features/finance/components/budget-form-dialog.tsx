@@ -1,5 +1,6 @@
 "use client";
 
+import { useToast } from "@/components/ui/toast";
 import { useActionState, useState } from "react";
 import { saveBudget } from "@/features/finance/actions";
 import { initialActionState, type ActionState } from "@/lib/actions";
@@ -25,10 +26,14 @@ function BudgetForm({
   hasTotal: boolean;
   onDone: () => void;
 }) {
+  const toast = useToast();
   const [state, formAction] = useActionState(
     async (prev: ActionState, formData: FormData) => {
       const result = await saveBudget(prev, formData);
-      if (result.ok) onDone();
+      if (result.ok) {
+        toast("Presupuesto guardado");
+        onDone();
+      }
       return result;
     },
     initialActionState,

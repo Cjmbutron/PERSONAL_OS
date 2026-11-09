@@ -1,5 +1,6 @@
 "use client";
 
+import { useToast } from "@/components/ui/toast";
 import { useActionState, useState } from "react";
 import { saveWorkoutSession } from "@/features/fitness/actions";
 import type { RoutineDetail, SessionDetail } from "@/features/fitness/queries";
@@ -35,10 +36,14 @@ export function SessionForm({
 }) {
   const editing = Boolean(session);
 
+  const toast = useToast();
   const [state, formAction] = useActionState(
     async (prev: ActionState, formData: FormData) => {
       const result = await saveWorkoutSession(prev, formData);
-      if (result.ok) onDone();
+      if (result.ok) {
+        toast("Sesión guardada");
+        onDone();
+      }
       return result;
     },
     initialActionState,

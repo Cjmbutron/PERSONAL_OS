@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@import "@fontsource-variable/bricolage-grotesque";
+@import "@fontsource-variable/bricolage-grotesque/wdth.css";
 
 /* Tokens de diseño. Los pares texto/fondo cumplen contraste AA (RNF-09). */
 :root {
@@ -27,10 +27,13 @@
   --area-sleep: #5b46a8;
   --area-finance: #7a5c00;
   --area-personal: #a1306e;
+  color-scheme: light;
 }
 
+/* Tema: "auto" sigue al dispositivo; el interruptor fija data-theme en <html> (ver theme-toggle). */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
     --background: #0c1517;
     --foreground: #e6f0ef;
     --card: #131f22;
@@ -53,6 +56,31 @@
     --area-finance: #e6c34d;
     --area-personal: #ee91c4;
   }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background: #0c1517;
+  --foreground: #e6f0ef;
+  --card: #131f22;
+  --muted: #1a2a2d;
+  --muted-foreground: #9db3b5;
+  --border: #264045;
+  --primary: #4fc3c0;
+  --primary-foreground: #062022;
+  --destructive: #f87171;
+  --destructive-foreground: #0b0b0d;
+  --success: #4ade80;
+  --warning: #fbbf24;
+  --ring: #4fc3c0;
+
+  --area-work: #7db8ee;
+  --area-habits: #f08a80;
+  --area-fitness: #f0a45c;
+  --area-nutrition: #9fd36f;
+  --area-sleep: #b4a4f0;
+  --area-finance: #e6c34d;
+  --area-personal: #ee91c4;
 }
 
 @theme inline {
