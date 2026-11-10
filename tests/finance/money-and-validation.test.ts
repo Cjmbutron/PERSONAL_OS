@@ -48,13 +48,17 @@ describe("accountInputSchema", () => {
 
 describe("categoryInputSchema", () => {
   it("valida nombre y tipo", () => {
-    expect(categoryInputSchema.parse({ name: " Mascotas ", kind: "expense" })).toEqual({ name: "Mascotas", kind: "expense" });
+    expect(categoryInputSchema.parse({ name: " Mascotas ", kind: "expense" })).toEqual({ name: "Mascotas", kind: "expense", parentId: null });
+    const parent = "11111111-1111-4111-8111-111111111111";
+    expect(categoryInputSchema.parse({ name: "Tenis", kind: "expense", parentId: parent }).parentId).toBe(parent);
+    expect(categoryInputSchema.safeParse({ name: "Tenis", kind: "expense", parentId: "no-uuid" }).success).toBe(false);
     expect(categoryInputSchema.safeParse({ name: "X", kind: "transfer" }).success).toBe(false);
     expect(categoryInputSchema.safeParse({ name: "", kind: "income" }).success).toBe(false);
     expect(categoryInputSchema.safeParse({ name: "x".repeat(61), kind: "income" }).success).toBe(false);
   });
   it("al editar el tipo no se usa", () => {
-    expect("kind" in categoryEditSchema.parse({ name: "A", kind: "income" })).toBe(false);
+    const edited = categoryEditSchema.parse({ name: "A", kind: "income", parentId: "11111111-1111-4111-8111-111111111111" });
+    expect("kind" in edited || "parentId" in edited).toBe(false);
   });
 });
 

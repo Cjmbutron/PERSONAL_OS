@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { connection } from "next/server";
 import { Bell } from "lucide-react";
 import { getWorkspaceContext } from "@/lib/auth/session";
 import { todayIn } from "@/lib/utils/date";
@@ -7,6 +8,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 /** Campana con el número de avisos sin leer. Lee la sesión: va detrás de <Suspense>. */
 export async function NoticeBell() {
+  // La fecha de hoy cambia en cada petición: se marca como dinámico antes de calcularla (Cache Components).
+  await connection();
   const ctx = await getWorkspaceContext();
   let unread = 0;
   try {

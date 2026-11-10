@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { BedDouble, CalendarPlus, CheckSquare, Flame, Plus, TrendingDown, TrendingUp, Utensils, type LucideIcon } from "lucide-react";
+import { BedDouble, CalendarPlus, CheckSquare, Flame, Plus, TrendingDown, TrendingUp, Dumbbell, Utensils, type LucideIcon } from "lucide-react";
 import { areaColor } from "@/lib/constants/areas";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 
@@ -13,6 +13,7 @@ const TILES: Tile[] = [
   { label: "Ingreso", hint: "Lo que recibiste", href: "/finance/transactions?nuevo=ingreso", icon: TrendingUp, area: "finance" },
   { label: "Comida", hint: "Qué comiste", href: "/nutrition?nuevo=comida", icon: Utensils, area: "nutrition" },
   { label: "Sueño", hint: "Cómo dormiste", href: "/sleep?nuevo=sueno", icon: BedDouble, area: "sleep" },
+  { label: "Entrenamiento", hint: "Sesión y series", href: "/fitness?nuevo=entrenamiento", icon: Dumbbell, area: "fitness" },
   { label: "Tarea", hint: "Algo por hacer", href: "/work/tasks?nuevo=tarea", icon: CheckSquare, area: "work" },
   { label: "Evento", hint: "Un compromiso", href: "/personal/calendar?nuevo=evento", icon: CalendarPlus, area: "personal" },
   { label: "Hábitos de hoy", hint: "Marca lo cumplido", href: "/habits", icon: Flame, area: "habits" },

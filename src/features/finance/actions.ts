@@ -103,9 +103,26 @@ export async function saveCategory(_prev: ActionState, formData: FormData): Prom
   } else {
     const parsed = categoryInputSchema.safeParse(raw);
     if (!parsed.success) return failFromZod(parsed.error, values);
+
+    // Una subcategoría hereda el tipo de su categoría principal (D-110).
+    let kind = parsed.data.kind;
+    if (parsed.data.parentId) {
+      const { data: parent, error: parentError } = await supabase
+        .from("transaction_categories")
+        .select("kind, parent_id, archived_at")
+        .eq("id", parsed.data.parentId)
+        .eq("workspace_id", workspace.id)
+        .maybeSingle();
+      if (parentError) return dbError(parentError, "saveCategory:parent", values);
+      if (!parent) return fail("La categoría principal ya no existe.", { values });
+      if (parent.archived_at) return fail("La categoría principal está archivada.", { values });
+      if (parent.parent_id) return fail("Una subcategoría no puede tener subcategorías.", { values });
+      kind = parent.kind;
+    }
+
     const { error } = await supabase
       .from("transaction_categories")
-      .insert({ workspace_id: workspace.id, name: parsed.data.name, kind: parsed.data.kind });
+      .insert({ workspace_id: workspace.id, name: parsed.data.name, kind, parent_id: parsed.data.parentId });
     if (error) return dbError(error, "saveCategory:insert", values);
   }
 
@@ -146,8 +163,21 @@ export async function setAccountArchived(id: string, archived: boolean): Promise
   return setArchived("financial_accounts", id, archived);
 }
 
+/** Archivar una categoría principal archiva también sus subcategorías (D-111). Restaurar solo restaura la elegida. */
 export async function setCategoryArchived(id: string, archived: boolean): Promise<ActionState> {
-  return setArchived("transaction_categories", id, archived);
+  const result = await setArchived("transaction_categories", id, archived);
+  if (result.ok && archived) {
+    const { workspace } = await getWorkspaceContext();
+    const supabase = await createClient();
+    const { error } = await supabase
+      .from("transaction_categories")
+      .update({ archived_at: new Date().toISOString() })
+      .eq("workspace_id", workspace.id)
+      .eq("parent_id", id)
+      .is("archived_at", null);
+    if (error) return dbErrorToState(error, "setCategoryArchived:children");
+  }
+  return result;
 }
 
 // --- Movimientos y transferencias ---------------------------------------------------

@@ -1,3 +1,4 @@
+import { rollupTotals } from "@/lib/finance/categories";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { BarChart3 } from "lucide-react";
@@ -53,7 +54,6 @@ async function ReportsContent({ searchParams }: { searchParams: PageProps<"/fina
     getMonthlyTotals(ctx.workspace.id, addMonths(month, -(MONTHS_IN_TREND - 1)), month),
     getCategoryTotals(ctx.workspace.id, month),
   ]);
-  const categoryName = new Map(categories.map((c) => [c.id, c.name]));
 
   // Nunca se mezclan monedas (D-42): un bloque por moneda.
   const currencies = [...new Set([...accounts.map((a) => a.currency), ...totals.map((t) => t.currency)])].sort();
@@ -81,10 +81,17 @@ async function ReportsContent({ searchParams }: { searchParams: PageProps<"/fina
               MONTHS_IN_TREND,
             );
             const current = trend[trend.length - 1];
-            const expenses = catTotals
-              .filter((t) => t.currency === currency && t.kind === "expense")
-              .map((t) => ({ name: categoryName.get(t.category_id) ?? "Categoría", total: roundMoney(t.total) }))
-              .sort((a, b) => b.total - a.total);
+            // Totales por categoría principal, con el desglose de sus subcategorías (D-113).
+            const expenseRows = rollupTotals(
+              catTotals.filter((t) => t.kind === "expense"),
+              categories,
+              currency,
+            ).map((r) => ({
+              ...r,
+              total: roundMoney(r.total),
+              children: r.children.map((c) => ({ ...c, total: roundMoney(c.total) })),
+            }));
+            const expenses = expenseRows.map((r) => ({ name: r.name, total: r.total }));
             const accountRows = accounts
               .filter((a) => a.currency === currency && (a.archived_at === null || (balances.get(a.id)?.balance ?? 0) !== 0))
               .map((a) => ({ id: a.id, name: a.name, archived: a.archived_at !== null, balance: balances.get(a.id)?.balance ?? a.opening_balance }));
@@ -135,15 +142,33 @@ async function ReportsContent({ searchParams }: { searchParams: PageProps<"/fina
                             </tr>
                           </thead>
                           <tbody>
-                            {expenses.map((e) => (
-                              <tr key={e.name} className="border-b border-border last:border-0">
+                            {expenseRows.flatMap((e) => [
+                              <tr key={e.id} className="border-b border-border last:border-0">
                                 <th scope="row" className="py-2 pr-3 text-left font-medium">{e.name}</th>
                                 <td className="py-2 pr-3 text-right tabular-nums">{formatMoney(e.total, currency)}</td>
                                 <td className="py-2 text-right tabular-nums">
                                   {current.expense > 0 ? Math.round((e.total / current.expense) * 100) : 0} %
                                 </td>
-                              </tr>
-                            ))}
+                              </tr>,
+                              ...e.children.map((c) => (
+                                <tr key={c.id} className="border-b border-border text-muted-foreground last:border-0">
+                                  <th scope="row" className="py-1.5 pl-5 pr-3 text-left text-xs font-normal">{c.name}</th>
+                                  <td className="py-1.5 pr-3 text-right text-xs tabular-nums">{formatMoney(c.total, currency)}</td>
+                                  <td className="py-1.5 text-right text-xs tabular-nums">
+                                    {current.expense > 0 ? Math.round((c.total / current.expense) * 100) : 0} %
+                                  </td>
+                                </tr>
+                              )),
+                              ...(e.children.length > 0 && e.own > 0
+                                ? [
+                                    <tr key={`${e.id}-own`} className="border-b border-border text-muted-foreground last:border-0">
+                                      <th scope="row" className="py-1.5 pl-5 pr-3 text-left text-xs font-normal">Sin subcategoría</th>
+                                      <td className="py-1.5 pr-3 text-right text-xs tabular-nums">{formatMoney(roundMoney(e.own), currency)}</td>
+                                      <td className="py-1.5" />
+                                    </tr>,
+                                  ]
+                                : []),
+                            ])}
                           </tbody>
                         </table>
                       </>

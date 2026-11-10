@@ -163,6 +163,8 @@ export type TransactionCategoryRow = {
   workspace_id: string;
   name: string;
   kind: CategoryKind;
+  /** Categoría principal, si es una subcategoría (un solo nivel; se fija al crear). */
+  parent_id: string | null;
   created_at: string;
   updated_at: string;
   archived_at: string | null;
@@ -569,7 +571,7 @@ export type Database = {
       };
       transaction_categories: {
         Row: TransactionCategoryRow;
-        Insert: { workspace_id: string; name: string; kind: CategoryKind };
+        Insert: { workspace_id: string; name: string; kind: CategoryKind; parent_id?: string | null };
         Update: Partial<Pick<TransactionCategoryRow, "name" | "archived_at">>;
         Relationships: [];
       };

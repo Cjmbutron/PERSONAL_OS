@@ -1,6 +1,7 @@
 import "server-only";
 import { cache } from "react";
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import type { LifeAreaRow, ProfileRow, WorkspaceRow } from "@/types/database";
 
@@ -10,6 +11,9 @@ import type { LifeAreaRow, ProfileRow, WorkspaceRow } from "@/types/database";
  * Se memoiza por petición con `cache` para no repetir la llamada.
  */
 export const getCurrentUser = cache(async () => {
+  // La sesión es siempre por petición: se marca como dinámico antes de que el cliente de Auth lea el reloj
+  // (Cache Components lo trata como un valor inestable durante el prerenderizado).
+  await connection();
   const supabase = await createClient();
   const { data, error } = await supabase.auth.getUser();
   if (error || !data.user) redirect("/login");

@@ -30,9 +30,11 @@ export const accountEditSchema = accountInputSchema.omit({ currency: true });
 export const categoryInputSchema = z.object({
   name: z.string().trim().min(1, { error: "Escribe un nombre" }).max(60, { error: "Máximo 60 caracteres" }),
   kind: z.enum(CATEGORY_KINDS, { error: "Tipo de categoría no válido" }),
+  /** Si se envía, es una subcategoría: el tipo lo hereda del padre (D-110). */
+  parentId: emptyToNull(z.uuid({ error: "Categoría no válida" })),
 });
 
-export const categoryEditSchema = categoryInputSchema.omit({ kind: true });
+export const categoryEditSchema = categoryInputSchema.omit({ kind: true, parentId: true });
 
 // --- Movimientos y transferencias (D-46 a D-51) ----------------------------------
 

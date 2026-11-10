@@ -14,10 +14,12 @@ import { SubmitButton } from "@/components/shared/submit-button";
 function CategoryForm({
   category,
   defaultKind,
+  parent,
   onDone,
 }: {
   category?: TransactionCategoryRow;
   defaultKind: CategoryKind;
+  parent?: TransactionCategoryRow;
   onDone: () => void;
 }) {
   const toast = useToast();
@@ -47,7 +49,12 @@ function CategoryForm({
         defaultValue={v("name", category?.name ?? "")}
         error={state.fieldErrors?.name}
       />
-      {category ? (
+      {parent ? <input type="hidden" name="parentId" value={parent.id} /> : null}
+      {parent ? (
+        <p className="text-sm text-muted-foreground">
+          Dentro de <span className="font-medium text-foreground">{parent.name}</span> ({CATEGORY_KIND_LABELS[parent.kind]}).
+        </p>
+      ) : category ? (
         <p className="text-sm text-muted-foreground">
           Tipo: <span className="font-medium text-foreground">{CATEGORY_KIND_LABELS[category.kind]}</span> (no se puede cambiar).
         </p>
@@ -61,7 +68,7 @@ function CategoryForm({
           error={state.fieldErrors?.kind}
         />
       )}
-      <SubmitButton pendingText="Guardando…">{category ? "Guardar cambios" : "Crear categoría"}</SubmitButton>
+      <SubmitButton pendingText="Guardando…">{category ? "Guardar cambios" : parent ? "Crear subcategoría" : "Crear categoría"}</SubmitButton>
     </form>
   );
 }
@@ -69,10 +76,13 @@ function CategoryForm({
 export function CategoryFormDialog({
   category,
   defaultKind = "expense",
+  parent,
   trigger,
 }: {
   category?: TransactionCategoryRow;
   defaultKind?: CategoryKind;
+  /** Crea una subcategoría dentro de esta categoría principal. */
+  parent?: TransactionCategoryRow;
   trigger: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
@@ -81,10 +91,10 @@ export function CategoryFormDialog({
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{category ? "Editar categoría" : "Nueva categoría"}</DialogTitle>
+          <DialogTitle>{category ? "Editar categoría" : parent ? "Nueva subcategoría" : "Nueva categoría"}</DialogTitle>
           <DialogDescription>Un gasto solo admite categorías de gasto y un ingreso, de ingreso.</DialogDescription>
         </DialogHeader>
-        <CategoryForm category={category} defaultKind={defaultKind} onDone={() => setOpen(false)} />
+        <CategoryForm category={category} defaultKind={defaultKind} parent={parent} onDone={() => setOpen(false)} />
       </DialogContent>
     </Dialog>
   );

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { z } from "zod";
-import { Pencil, Plus, Tags } from "lucide-react";
+import { CornerDownRight, Pencil, Plus, Tags } from "lucide-react";
 import { getWorkspaceContext } from "@/lib/auth/session";
 import { CATEGORY_KIND_LABELS } from "@/lib/constants/labels";
 import { listCategories } from "@/features/finance/queries";
@@ -17,6 +17,13 @@ import { PageHeader } from "@/components/shared/page-header";
 import { ListSkeleton, PageTitleSkeleton } from "@/components/shared/skeletons";
 
 export const metadata: Metadata = { title: "Categorías" };
+
+/** Cada categoría principal seguida de sus subcategorías. */
+function ordered<T extends { id: string; name: string; parent_id: string | null }>(items: T[]): T[] {
+  const ids = new Set(items.map((i) => i.id));
+  const roots = items.filter((i) => !i.parent_id || !ids.has(i.parent_id));
+  return roots.flatMap((r) => [r, ...items.filter((i) => i.parent_id === r.id)]);
+}
 
 const archivedSchema = z.enum(["1"]).optional().catch(undefined);
 
@@ -90,10 +97,23 @@ async function CategoriesContent({ searchParams }: { searchParams: PageProps<"/f
                     <p className="text-sm text-muted-foreground">Sin categorías.</p>
                   ) : (
                     <ul className="divide-y divide-border" aria-label={CATEGORY_KIND_LABELS[kind]}>
-                      {items.map((c) => (
-                        <li key={c.id} className="flex items-center justify-between gap-2 py-1.5">
-                          <span className="min-w-0 truncate text-sm">{c.name}</span>
+                      {ordered(items).map((c) => (
+                        <li key={c.id} className={`flex items-center justify-between gap-2 py-1.5 ${c.parent_id ? "pl-6" : ""}`}>
+                          <span className="flex min-w-0 items-center gap-1.5 truncate text-sm">
+                            {c.parent_id ? <CornerDownRight className="size-3.5 shrink-0 text-muted-foreground" aria-hidden /> : null}
+                            {c.name}
+                          </span>
                           <div className="flex shrink-0 items-center gap-1">
+                            {!archived && !c.parent_id ? (
+                              <CategoryFormDialog
+                                parent={c}
+                                trigger={
+                                  <Button variant="ghost" size="icon-sm" aria-label={`Añadir una subcategoría a ${c.name}`}>
+                                    <Plus aria-hidden />
+                                  </Button>
+                                }
+                              />
+                            ) : null}
                             {!archived ? (
                               <CategoryFormDialog
                                 category={c}

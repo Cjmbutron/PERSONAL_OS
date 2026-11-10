@@ -16,3 +16,26 @@ Alcance aprobado: centro de avisos **dentro de la app** (sin push ni correo), ca
 | D-103 | Fuera de alcance (no elegido): push/correo, recordatorios de hábitos, tareas recurrentes con fin o intervalos personalizados. Las filas antiguas de `notice_states` no se limpian aún (volumen mínimo). |
 
 Migración: `supabase/migrations/20261109000012_automation.sql`. Pruebas: `tests/rls/automation.test.ts`, `tests/notices/compute.test.ts`.
+
+## Revisión de accesibilidad (D-104 a D-108)
+
+| ID | Decisión |
+|----|----------|
+| D-104 | Contraste (WCAG AA, 4.5:1 para texto) medido sobre fondo, tarjeta y fondo atenuado en claro y oscuro. Se oscurecieron en modo claro `success`, `warning`, `fitness` y `nutrition`, que quedaban entre 4.1 y 4.5. |
+| D-105 | Nuevo token `--input`: el borde de los campos pasa de 1.4:1 a más de 3:1 (WCAG 1.4.11). Las tarjetas conservan el borde suave, que es decorativo. |
+| D-106 | Enlace "Saltar al contenido" (primer elemento enfocable) y `main` enfocable. |
+| D-107 | Áreas táctiles mínimas: cierre de diálogos 40 px, botones de los avisos emergentes 36 px; etiquetas de la barra inferior de 12 px. |
+| D-108 | "Atención de hoy" incluye el aviso de revisión semanal y un enlace a Avisos con el número de sin leer. Pendiente: mover el foco al primer campo con error tras enviar, y pausar los avisos emergentes al pasar el cursor. |
+
+## Subcategorías de finanzas (D-109 a D-114)
+
+Motivo: registrar, por ejemplo, Vivienda → Luz, Agua, Internet o IAN → Pensión, Tenis, Piano, y ver el total de la categoría y su desglose. Migración: `20261110000013_subcategories.sql`.
+
+| ID | Decisión |
+|----|----------|
+| D-109 | `transaction_categories.parent_id`: un solo nivel (categoría → subcategoría). Los movimientos, presupuestos y obligaciones siguen usando `category_id`, que puede ser una categoría o una subcategoría; no se migra ningún dato. |
+| D-110 | Una subcategoría es del mismo tipo que su padre (clave foránea compuesta con `kind`); al crearla, el tipo se hereda. `parent_id` solo se fija al crear (sin permiso de UPDATE), igual que `kind`. |
+| D-111 | Un trigger impide subcategorías de subcategorías y crear o restaurar una subcategoría bajo un padre archivado. Archivar un padre archiva sus subcategorías; restaurar solo restaura la elegida. |
+| D-112 | El nombre es único dentro de su padre ("Pensión" puede existir bajo dos padres). Selectores y listas muestran "IAN › Tenis", ordenados con cada principal seguida de sus hijos. |
+| D-113 | Los totales se suman en la aplicación, no en la base de datos: reportes muestran la principal con su desglose (y "Sin subcategoría" si hay gasto directo); un presupuesto de una principal cuenta también lo gastado en sus subcategorías; el de una subcategoría, solo lo suyo. Una subcategoría cubierta por el presupuesto de su padre no aparece en "Gastos sin presupuesto". |
+| D-114 | Fuera de alcance: mover una categoría existente a otra principal (hoy se crea la subcategoría nueva y se reclasifican los movimientos), más de un nivel y etiquetas libres. |

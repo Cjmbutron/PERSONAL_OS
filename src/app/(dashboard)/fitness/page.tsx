@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { z } from "zod";
 import { Activity, CalendarCheck, Dumbbell, Plus, Weight } from "lucide-react";
 import { getWorkspaceContext } from "@/lib/auth/session";
+import { quickParam } from "@/lib/utils/quick-param";
 import { addDays, formatDate, instantToLocalInput, todayIn } from "@/lib/utils/date";
 import {
   exerciseProgress,
@@ -113,6 +114,7 @@ async function FitnessContent({ searchParams }: { searchParams: PageProps<"/fitn
         description="Registra tus sesiones, series y pesos, y mira cómo evolucionas."
         actions={
           <SessionFormDialog
+            defaultOpen={quickParam(raw) === "entrenamiento"}
             routine={routine}
             timezone={timezone}
             defaultStartedAt={defaultStartedAt}

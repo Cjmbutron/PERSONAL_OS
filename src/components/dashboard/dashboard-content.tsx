@@ -1,3 +1,4 @@
+import { listNotices } from "@/features/notices/queries";
 import Link from "next/link";
 import { Suspense } from "react";
 import { TrendsCard, TrendsSkeleton } from "./trends-card";
@@ -41,7 +42,7 @@ export async function DashboardContent({ period = 7 }: { period?: 7 | 30 }) {
   const since = startOfDayInstant(addDays(today, -(period - 1)), ctx.profile.timezone);
   const lastWeekMonday = addDays(weekStart(today), -7);
 
-  const [openTasks, projects, completedWeek, habitViews, sleepWeek, mealsToday, weekSessions, routine, accounts, balances, monthTotals, pendingObligations, upcomingEvents, activeGoals, weekPriorities, lastReview] = await Promise.all([
+  const [openTasks, projects, completedWeek, habitViews, sleepWeek, mealsToday, weekSessions, routine, accounts, balances, monthTotals, pendingObligations, upcomingEvents, activeGoals, weekPriorities, lastReview, notices] = await Promise.all([
     listOpenTasks(ctx.workspace.id),
     listProjects(ctx.workspace.id),
     countCompletedSince(ctx.workspace.id, since.toISOString()),
@@ -58,6 +59,7 @@ export async function DashboardContent({ period = 7 }: { period?: 7 | 30 }) {
     listGoals(ctx.workspace.id, { status: "active" }),
     listPriorities(ctx.workspace.id, weekStart(today)),
     getReview(ctx.workspace.id, lastWeekMonday),
+    listNotices(ctx.workspace.id, today).catch(() => []),
   ]);
 
   // Finanzas (D-56): saldo por moneda, gastos del mes y obligaciones vencidas o próximas. Nunca se mezclan monedas.
@@ -103,7 +105,12 @@ export async function DashboardContent({ period = 7 }: { period?: 7 | 30 }) {
   if (soonMoney > 0) attention.push({ key: "money-soon", text: `${plural(soonMoney, "pago por vencer", "pagos por vencer")}`, href: "/finance/obligations", tone: "warning" });
   if (habitsDue.length - habitsDone > 0)
     attention.push({ key: "habits", text: `${plural(habitsDue.length - habitsDone, "hábito pendiente", "hábitos pendientes")} hoy`, href: "/habits", tone: "neutral" });
+  // Aviso de la revisión semanal (D-99): mismo cálculo que el centro de avisos.
+  const weeklyNotice = notices.find((n) => n.kind === "weekly-review" && n.state !== "dismissed");
+  if (weeklyNotice) attention.push({ key: "weekly-review", text: weeklyNotice.title, href: weeklyNotice.href, tone: "neutral" });
   if (!sleepWeek.some((r) => r.sleep_date === today)) attention.push({ key: "sleep", text: "Registra cómo dormiste", href: "/sleep?nuevo=sueno", tone: "neutral" });
+
+  const unreadNotices = notices.filter((n) => n.state === "new").length;
 
   return (
     <>
@@ -125,7 +132,12 @@ export async function DashboardContent({ period = 7 }: { period?: 7 | 30 }) {
       </div>
 
       <section aria-label="Atención de hoy" className="mb-6">
-        <h2 className="mb-2 text-sm font-semibold">Atención de hoy</h2>
+        <div className="mb-2 flex items-center justify-between gap-2">
+          <h2 className="text-sm font-semibold">Atención de hoy</h2>
+          <Link href="/notices" className="text-sm font-medium text-primary hover:underline">
+            {unreadNotices > 0 ? `Ver avisos (${unreadNotices} sin leer)` : "Ver avisos"}
+          </Link>
+        </div>
         {attention.length === 0 ? (
           <p className="flex items-center gap-2 rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground">
             <CheckCircle2 className="size-4 text-success" aria-hidden />

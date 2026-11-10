@@ -5,7 +5,7 @@ import { getWorkspaceContext } from "@/lib/auth/session";
 import { formatMoney, sumByCurrency } from "@/lib/finance/money";
 import { dueState } from "@/lib/finance/stats";
 import { todayIn } from "@/lib/utils/date";
-import { listAccounts, listCategories, listObligations } from "@/features/finance/queries";
+import { listAccounts, listCategoryPaths, listObligations } from "@/features/finance/queries";
 import { ObligationFormDialog } from "@/features/finance/components/obligation-form-dialog";
 import { ObligationRowView } from "@/features/finance/components/obligation-row";
 import { Button } from "@/components/ui/button";
@@ -39,7 +39,7 @@ async function ObligationsContent() {
     listObligations(ctx.workspace.id, "paid", 15),
     listObligations(ctx.workspace.id, "cancelled", 30),
     listAccounts(ctx.workspace.id),
-    listCategories(ctx.workspace.id, { archived: "all" }),
+    listCategoryPaths(ctx.workspace.id, { archived: "all" }),
   ]);
   const activeCategories = categories.filter((c) => c.archived_at === null);
   const categoryName = new Map(categories.map((c) => [c.id, c.name]));

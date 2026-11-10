@@ -8,7 +8,7 @@ import { formatMoney, roundMoney } from "@/lib/finance/money";
 import { formatDate, todayIn } from "@/lib/utils/date";
 import { addMonths, monthLabel, monthStart } from "@/lib/utils/month";
 import { monthParamSchema } from "@/lib/validations/fitness";
-import { MAX_MONTH_TRANSACTIONS, listAccounts, listCategories, listTransactions } from "@/features/finance/queries";
+import { MAX_MONTH_TRANSACTIONS, listAccounts, listCategoryPaths, listTransactions } from "@/features/finance/queries";
 import { quickParam } from "@/lib/utils/quick-param";
 import { TransactionFormDialog } from "@/features/finance/components/transaction-form-dialog";
 import { TransactionRowView } from "@/features/finance/components/transaction-row";
@@ -56,7 +56,7 @@ async function TransactionsContent({ searchParams }: { searchParams: PageProps<"
 
   const [allAccounts, categories, all] = await Promise.all([
     listAccounts(ctx.workspace.id, { archived: "all" }),
-    listCategories(ctx.workspace.id, { archived: "all" }),
+    listCategoryPaths(ctx.workspace.id, { archived: "all" }),
     listTransactions(ctx.workspace.id, month, { archived }),
   ]);
   const activeAccounts = allAccounts.filter((a) => a.archived_at === null);

@@ -1,3 +1,4 @@
+import { withPaths } from "@/lib/finance/categories";
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import type {
@@ -34,6 +35,11 @@ export async function listCategories(workspaceId: string, opts: { archived?: boo
   const { data, error } = await query.order("name").limit(500);
   if (error) fail("listCategories", error, "No se pudieron cargar las categorías.");
   return data ?? [];
+}
+
+/** Categorías ordenadas (principal y sus subcategorías) con el nombre completo, p. ej. "IAN › Tenis" (D-112). */
+export async function listCategoryPaths(workspaceId: string, opts: { archived?: boolean | "all" } = {}): Promise<TransactionCategoryRow[]> {
+  return withPaths(await listCategories(workspaceId, opts));
 }
 
 /** Saldo calculado por cuenta (D-44), por id de cuenta. */

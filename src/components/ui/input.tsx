@@ -2,7 +2,7 @@ import * as React from "react";
 import { cn } from "@/lib/utils/cn";
 
 export const controlClasses =
-  "w-full rounded-lg border border-border bg-card px-3 py-2 text-base text-foreground md:text-sm placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 aria-[invalid=true]:border-destructive";
+  "w-full rounded-lg border border-input bg-card px-3 py-2 text-base text-foreground md:text-sm placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 aria-[invalid=true]:border-destructive";
 
 /** En campos numéricos el teclado del celular se ajusta solo: con decimales si el paso lo admite. */
 function numericMode(type: string, step: string | number | undefined) {

@@ -47,7 +47,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
             {t.onAction ? (
               <button
                 type="button"
-                className="shrink-0 rounded-md px-2 py-1 font-medium underline underline-offset-2"
+                className="shrink-0 rounded-md px-3 py-2 font-medium underline underline-offset-2"
                 onClick={() => {
                   t.onAction?.();
                   dismiss(t.id);
@@ -56,7 +56,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
                 {t.actionLabel}
               </button>
             ) : null}
-            <button type="button" aria-label="Cerrar aviso" className="shrink-0 opacity-70 hover:opacity-100" onClick={() => dismiss(t.id)}>
+            <button type="button" aria-label="Cerrar aviso" className="flex size-9 shrink-0 items-center justify-center rounded-md opacity-80 hover:opacity-100" onClick={() => dismiss(t.id)}>
               <X className="size-4" aria-hidden />
             </button>
           </div>

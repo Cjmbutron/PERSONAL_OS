@@ -10,20 +10,21 @@
   --muted: #e3eaea;
   --muted-foreground: #4a5f64;
   --border: #cfdbda;
+  --input: #6c8284;
   --primary: #0a6a6c;
   --primary-foreground: #ffffff;
   --destructive: #b91c1c;
   --destructive-foreground: #ffffff;
-  --success: #15803d;
-  --warning: #b45309;
+  --success: #136b33;
+  --warning: #9a4707;
   --ring: #0a6a6c;
 
   --area-dashboard: var(--primary);
   --area-review: var(--primary);
   --area-work: #1d5d94;
   --area-habits: #b4322b;
-  --area-fitness: #a5560a;
-  --area-nutrition: #3f7d1f;
+  --area-fitness: #8f4b09;
+  --area-nutrition: #376c1a;
   --area-sleep: #5b46a8;
   --area-finance: #7a5c00;
   --area-personal: #a1306e;
@@ -40,6 +41,7 @@
     --muted: #1a2a2d;
     --muted-foreground: #9db3b5;
     --border: #264045;
+    --input: #50737a;
     --primary: #4fc3c0;
     --primary-foreground: #062022;
     --destructive: #f87171;
@@ -66,6 +68,7 @@
   --muted: #1a2a2d;
   --muted-foreground: #9db3b5;
   --border: #264045;
+  --input: #50737a;
   --primary: #4fc3c0;
   --primary-foreground: #062022;
   --destructive: #f87171;
@@ -90,6 +93,7 @@
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
   --color-border: var(--border);
+  --color-input: var(--input);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-destructive: var(--destructive);

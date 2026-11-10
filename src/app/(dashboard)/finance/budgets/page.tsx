@@ -1,3 +1,4 @@
+import { spentIncludingChildren } from "@/lib/finance/categories";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -9,7 +10,7 @@ import { budgetRemaining } from "@/lib/finance/stats";
 import { todayIn } from "@/lib/utils/date";
 import { addMonths, monthLabel, monthStart } from "@/lib/utils/month";
 import { monthParamSchema } from "@/lib/validations/fitness";
-import { getCategoryTotals, getMonthlyTotals, listBudgets, listCategories } from "@/features/finance/queries";
+import { getCategoryTotals, getMonthlyTotals, listBudgets, listCategoryPaths } from "@/features/finance/queries";
 import { setBudgetArchived } from "@/features/finance/actions";
 import { ArchiveButton } from "@/features/finance/components/archive-button";
 import { BudgetFormDialog } from "@/features/finance/components/budget-form-dialog";
@@ -57,13 +58,16 @@ async function BudgetsContent({ searchParams }: { searchParams: PageProps<"/fina
 
   const [budgets, categories, catTotals, monthTotals] = await Promise.all([
     listBudgets(ctx.workspace.id, month, { archived }),
-    listCategories(ctx.workspace.id, { archived: "all" }),
+    listCategoryPaths(ctx.workspace.id, { archived: "all" }),
     getCategoryTotals(ctx.workspace.id, month),
     getMonthlyTotals(ctx.workspace.id, month, month),
   ]);
 
   const categoryName = new Map(categories.map((c) => [c.id, c.name]));
-  const spentByCategory = new Map(catTotals.filter((t) => t.kind === "expense").map((t) => [`${t.currency}:${t.category_id}`, t.total]));
+  // Un presupuesto de categoría principal cuenta también lo gastado en sus subcategorías (D-113).
+  const expenseTotals = catTotals.filter((t) => t.kind === "expense");
+  const spentByCategory = spentIncludingChildren(expenseTotals, categories);
+  const parentOf = new Map(categories.map((c) => [c.id, c.parent_id]));
   const spentTotal = new Map(monthTotals.filter((t) => t.kind === "expense").map((t) => [t.currency, t.total]));
 
   const spentOf = (b: (typeof budgets)[number]) =>
@@ -77,7 +81,13 @@ async function BudgetsContent({ searchParams }: { searchParams: PageProps<"/fina
   const budgeted = new Set(budgets.map((b) => b.category_id));
   const available = categories.filter((c) => c.kind === "expense" && c.archived_at === null && !budgeted.has(c.id));
   const unbudgeted = catTotals
-    .filter((t) => t.kind === "expense" && !budgets.some((b) => b.category_id === t.category_id && b.currency === t.currency))
+    .filter(
+      (t) =>
+        t.kind === "expense" &&
+        !budgets.some(
+          (b) => b.currency === t.currency && (b.category_id === t.category_id || (b.category_id !== null && b.category_id === parentOf.get(t.category_id))),
+        ),
+    )
     .sort((a, b) => b.total - a.total);
 
   const q = (over: Record<string, string | undefined>) => {
