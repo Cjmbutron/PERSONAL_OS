@@ -57,7 +57,7 @@ export function BottomNav() {
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent placement="free" className="left-0 top-0 h-dvh max-h-dvh w-72 max-w-72 translate-x-0 translate-y-0 rounded-none rounded-r-2xl">
-          <DialogTitle className="font-display mb-1">PERSONAL OS</DialogTitle>
+          <DialogTitle className="font-display mb-1">Personal OS</DialogTitle>
           <DialogDescription className="mb-4">Todos tus módulos.</DialogDescription>
           <NavLinks onNavigate={() => setOpen(false)} />
         </DialogContent>
