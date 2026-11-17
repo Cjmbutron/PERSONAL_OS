@@ -1,5 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="currentColor" role="img" aria-label="Personal OS">
-  <rect x="10" y="39" width="44" height="10" rx="2.5" fill-opacity=".45"/>
-  <rect x="18" y="27" width="28" height="10" rx="2.5" fill-opacity=".75"/>
-  <rect x="25" y="15" width="14" height="10" rx="2.5"/>
+  <g transform="translate(-3.5 -2)">
+    <path d="M17 52 L30 16 H37 L24 52 Z" />
+    <path d="M33 16 H46 Q54 16 54 24 Q54 32 46 32 H28 L31 25 H44 Q47 25 47 23 Q47 22 44 22 H31 Z" />
+    <path d="M30 40 H40 L35 52 H25 Z"/>
+  </g>
 </svg>
