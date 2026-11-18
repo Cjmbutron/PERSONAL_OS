@@ -15,7 +15,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col">
         <Header />
-        <main id="contenido" tabIndex={-1} className="outline-none mx-auto w-full max-w-5xl flex-1 px-4 pb-28 pt-6 md:px-8 md:py-8">
+        <main id="contenido" tabIndex={-1} className="outline-none mx-auto w-full max-w-5xl flex-1 px-4 pb-28 pt-6 md:px-8 lg:py-8">
           {children}
         </main>
       </div>

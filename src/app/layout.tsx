@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { GeistMono } from "geist/font/mono";
 import { GeistSans } from "geist/font/sans";
 import "./globals.css";
+import { FocusFirstError } from "@/components/shared/focus-first-error";
 import { ToastProvider } from "@/components/ui/toast";
 
 const siteUrl =
@@ -56,6 +57,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       </head>
       <body className="min-h-full flex flex-col">
         <ToastProvider>{children}</ToastProvider>
+        <FocusFirstError />
       </body>
     </html>
   );

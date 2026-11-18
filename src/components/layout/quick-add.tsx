@@ -64,7 +64,7 @@ export function QuickAdd({ variant }: { variant: "sidebar" | "fab" }) {
           type="button"
           onClick={() => setOpen(true)}
           aria-label="Registrar"
-          className="fixed bottom-[calc(1.25rem+env(safe-area-inset-bottom))] left-1/2 z-50 flex size-14 -translate-x-1/2 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg ring-4 ring-background hover:opacity-90 md:hidden"
+          className="fixed bottom-[calc(1.25rem+env(safe-area-inset-bottom))] left-1/2 z-50 flex size-14 -translate-x-1/2 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg ring-4 ring-background hover:opacity-90 lg:hidden"
         >
           <Plus className="size-6" aria-hidden />
         </button>

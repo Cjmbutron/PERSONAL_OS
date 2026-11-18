@@ -39,7 +39,7 @@ export function BottomNav() {
     <>
       <nav
         aria-label="Principal"
-        className="fixed inset-x-0 bottom-0 z-40 flex items-stretch border-t border-border bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
+        className="fixed inset-x-0 bottom-0 z-40 flex items-stretch border-t border-border bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
       >
         {items.slice(0, 2).map(link)}
         {/* Hueco central para el botón de registro. */}

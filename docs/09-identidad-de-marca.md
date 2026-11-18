@@ -17,3 +17,12 @@ Uso: tamaño mínimo 16 px (legible); sobre el color primario el nombre va en bl
 | D-120 | **Privacidad:** `robots: noindex, nofollow`: es una app personal y no debe aparecer en buscadores. Las páginas internas requieren sesión, así que al compartir un enlace solo se ve la tarjeta de marca. |
 | D-121 | **Tarjeta al compartir enlaces:** `opengraph-image.png` / `twitter-image.png` (1200×630) con logotipo y lema, más título y descripción Open Graph. La URL base sale de `NEXT_PUBLIC_SITE_URL` o, en Vercel, de `VERCEL_PROJECT_PRODUCTION_URL`. |
 | D-122 | **Color de la barra del navegador** (`theme-color`) según tema claro u oscuro. Sin service worker por ahora: no hay modo sin conexión, para no guardar en caché datos personales ni sesiones. |
+
+## Accesibilidad y tablet (D-123 a D-126)
+
+| ID | Decisión |
+|----|----------|
+| D-123 | Tras enviar un formulario con errores, el foco pasa al primer campo inválido (`FocusFirstError`, un solo oyente global que usa el `aria-invalid` que ya ponen los campos). Respeta "reducir movimiento". |
+| D-124 | Los avisos emergentes (toasts) pausan su temporizador mientras el cursor o el foco están encima (WCAG 2.2.1). |
+| D-125 | **Tablet:** el cambio entre barra lateral y barra inferior pasa de 768 px a **1024 px**. En tablet vertical se usa el diseño de celular (barra inferior y botón "+"), que aprovecha mejor el ancho; en horizontal, la barra lateral. |
+| D-126 | **Corrección del logotipo:** cada instancia usa ids únicos de degradado. Con ids repetidos, la copia oculta de la barra lateral dejaba sin relleno al logotipo del encabezado en celular y tablet vertical. |
